@@ -14,11 +14,13 @@ import {
   ShieldCheck,
   Info,
   UserX,
+  FileText,
 } from "lucide-react";
 
 export interface UserDBRecord {
   id: number;
   name: string;
+  bio: string | null;
   occupation: string | null;
   location: string | null;
   education: string | null;
@@ -58,6 +60,7 @@ export const EditProfile: React.FC<EditProfileProps> = ({
   // --- Form States ---
   const [profileImage, setProfileImage] = useState<string>(initialProfileImg);
   const [fullName, setFullName] = useState<string>(user?.name || "");
+  const [bio, setBio] = useState<string>(user?.bio || "");
   const [occupation, setOccupation] = useState<string>(user?.occupation || "");
   const [location, setLocation] = useState<string>(user?.location || "");
   const [education, setEducation] = useState<string>(user?.education || "");
@@ -94,20 +97,6 @@ export const EditProfile: React.FC<EditProfileProps> = ({
 
   return (
     <div className="min-h-screen bg-[#fbf9f8] text-[#1b1c1c] font-sans antialiased pb-16 md:pb-12">
-      {/* Top Navigation Header */}
-      <header className="sticky top-0 z-50 bg-[#fbf9f8]/90 backdrop-blur-md border-b border-[#c4c6cf]/30 px-4 md:px-16 py-4">
-        <div className="max-w-[1280px] mx-auto flex items-center gap-4">
-          <Link
-            href="/profile"
-            className="p-2 hover:bg-[#eae8e7] rounded-full transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-[#000d22]" />
-          </Link>
-          <h1 className="font-serif text-2xl font-semibold text-[#000d22]">
-            Edit Profile
-          </h1>
-        </div>
-      </header>
 
       {/* Main Content Area */}
       <main className="max-w-[900px] mx-auto px-4 md:px-16 py-12">
@@ -119,7 +108,7 @@ export const EditProfile: React.FC<EditProfileProps> = ({
 
           {/* Profile Photo & Identity Section */}
           <section className="flex flex-col md:flex-row gap-12 items-center md:items-start mb-12">
-            <div className="relative group">
+            <div className="relative group shrink-0">
               <div className="w-48 h-48 rounded-full border-4 border-white shadow-xl overflow-hidden bg-[#e4e2e2] flex items-center justify-center">
                 {profileImage ? (
                   <img
@@ -168,6 +157,28 @@ export const EditProfile: React.FC<EditProfileProps> = ({
                   className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none transition-colors font-serif text-2xl font-semibold text-[#000d22]"
                 />
               </div>
+
+              {/* About / Bio Input */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
+                    About You (Bio)
+                  </label>
+                  <span className="text-xs text-[#43474e]">
+                    {bio.length}/500
+                  </span>
+                </div>
+                <textarea
+                  name="bio"
+                  rows={3}
+                  maxLength={500}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Share a little bit about yourself, your story, or what you're looking for..."
+                  className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none transition-colors text-base resize-y min-h-[90px]"
+                />
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">

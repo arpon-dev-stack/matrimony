@@ -16,8 +16,8 @@ import {
   Loader2,
   Coins,
 } from 'lucide-react';
-import { signUpAction } from '@/app/actions/auth';
-import { AuthFormState, Gender } from '@/app/types/auth';
+import { signUpAction } from '@/app/actions/signUpAction';
+import { AuthFormState} from '@/app/types/auth';
 
 export default function SignupForm() {
   const router = useRouter();
@@ -31,10 +31,10 @@ export default function SignupForm() {
 
   useEffect(() => {
       if (state?.user) {
-        signIn(state.user); // Stores full profile (id, email, joiningfor, location, etc.)
+        signIn(state); // Stores full profile (id, email, joiningfor, location, etc.)
         router.push('/user'); // Redirects client-side after state update
       }
-    }, [state?.user, signIn, router]);
+    }, [state, signIn, router]);
 
   // 1. Create a custom submit handler to prevent default behavior
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

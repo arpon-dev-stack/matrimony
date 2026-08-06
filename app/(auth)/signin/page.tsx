@@ -4,7 +4,7 @@ import React, { useState, useEffect, useActionState, useRef } from "react";
 import { Mail, Lock, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/app/_store/AuthContext"; // Import your AuthContext hook
-import { signInAction } from "@/app/actions/auth";
+import { signInAction } from "@/app/actions/signInAction";
 import { useRouter } from "next/navigation";
 
 export default function SignInForm() {
@@ -17,13 +17,13 @@ export default function SignInForm() {
   useEffect(() => {
     if (state?.user && !hasHandleAuth.current) {
       hasHandleAuth.current = true
-      signIn(state.user); // Stores full profile (id, email, joiningfor, location, etc.)
+      signIn(state); // Stores full profile (id, email, joiningfor, location, etc.)
       router.push('/user'); // Redirects client-side after state update
     }
-  }, [state?.user, signIn, router]);
+  }, [state, signIn, router]);
 
   // Simulated successful API response data
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);

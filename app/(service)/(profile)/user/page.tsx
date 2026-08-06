@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 
 export default function UserProfile() {
-  const auth = useAuth();
-  console.log(auth);
+  const user = useAuth();
+  console.log(user)
   const [profile, setProfile] = useState({
     name: "Julian Thorne",
     age: 32,

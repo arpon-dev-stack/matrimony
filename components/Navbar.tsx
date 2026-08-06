@@ -9,8 +9,7 @@ import { useAuth } from "@/app/_store/AuthContext";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const user420 = useAuth();
-  console.log(user420);
+  const {} = useAuth();
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
