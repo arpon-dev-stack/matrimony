@@ -1,11 +1,11 @@
 'use server';
 
 import { cookies } from "next/headers";
-import { UserImage } from "../types/auth";
+import { UpdateProfile, UserImage } from "../types/auth";
 import { revalidatePath } from "next/cache";
 
 
-export async function updateProfileAction(formData: FormData) {
+export async function updateProfileAction(prevState: UpdateProfile,formData: FormData): Promise<UpdateProfile> {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get("session")?.value;
 

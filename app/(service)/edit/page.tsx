@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useActionState } from "react";
 import { CldUploadWidget } from "next-cloudinary";
 import Link from "next/link";
 import { useAuth } from "@/app/_store/AuthContext";
+import { updateProfileAction } from "@/app/actions/updateProfileAction";
 import {
   ArrowLeft,
   Camera,
@@ -39,14 +40,11 @@ interface EditProfileProps {
   updateProfileAction: (formData: FormData) => Promise<void>;
 }
 
-export const EditProfile: React.FC<EditProfileProps> = ({
-  user,
-  updateProfileAction,
-}) => {
-  const { user: user2 } = useAuth();
-
+export const EditProfile: React.FC = () => {
+  const { user, accessToken } = useAuth();
+const [state, formAction, isPending] = useActionState(updateProfileAction, null);
   // Consolidate target user data with user2 taking priority over prop
-  const activeUser = user2 || user;
+  const activeUser = user
 
   // Extract initial profile image from DB images array
   const initialProfileImg =
@@ -105,8 +103,9 @@ export const EditProfile: React.FC<EditProfileProps> = ({
     <div className="min-h-screen bg-[#fbf9f8] text-[#1b1c1c] font-sans antialiased pb-16 md:pb-12">
       {/* Main Content Area */}
       <main className="max-w-[900px] mx-auto px-4 md:px-16 py-12">
-        <form action={updateProfileAction}>
+        <form action={formAction}>
           {/* Hidden Inputs for Complex State Serialization */}
+          <input type="hidden" name="accessToken" value={accessToken} />
           <input type="hidden" name="profileImage" value={profileImage} />
           <input type="hidden" name="interests" value={JSON.stringify(interests)} />
           <input type="hidden" name="gallery" value={JSON.stringify(gallery)} />

@@ -32,3 +32,5 @@ export interface AuthFormState {
   success: boolean | undefined;
   token: string | undefined;
 }
+
+export interface UpdateProfile {error?: string, success?: boolean}

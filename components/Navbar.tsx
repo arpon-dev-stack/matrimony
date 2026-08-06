@@ -68,7 +68,9 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
           <div className="text-[#43474e] hover:text-[#000d22] transition-colors font-medium">
             {user ? (
+              <Link href="/user">
               <CircleUser />
+              </Link>
             ) : (
               <Link href="/signin" className="flex items-center gap-2">
                 Log In
