@@ -1,23 +1,24 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { User } from '../types/auth';
+import { AuthFormState, User } from '../types/auth';
 import { refreshTokenAction } from '../actions/refreshTokenAction';
+import { signOutAction } from '../actions/signOutAction'; // Import signout server action
 
 export type AuthContextType = {
-  user: User | null;
-  accessToken: string | null;
+  user: User | undefined;
+  accessToken: string | undefined;
   isLoading: boolean;
-  signIn: (user: User, token: string) => void;
-  signOut: () => void;
-  getValidToken: () => Promise<string | null>;
+  signIn: (data: { user: User; token: string }) => void;
+  signOut: () => Promise<void>; // Updated to Promise<void>
+  getValidToken: () => Promise<string | undefined>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | undefined>(undefined);
+  const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Helper to handle refresh logic
@@ -29,14 +30,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(res.user);
         return res.token;
       } else {
-        setAccessToken(null);
-        setUser(null);
+        setAccessToken(undefined);
+        setUser(undefined);
         return null;
       }
     } catch (err) {
       console.error("Session refresh failed", err);
-      setAccessToken(null);
-      setUser(null);
+      setAccessToken(undefined);
+      setUser(undefined);
       return null;
     }
   }, []);
@@ -52,24 +53,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { isMounted = false; };
   }, [refreshSession]);
 
-  // Call this function before making any authenticated API requests
-  const getValidToken = useCallback(async (): Promise<string | null> => {
+  const getValidToken = useCallback(async (): Promise<string | undefined> => {
     if (accessToken) {
-      // Optional: Check JWT expiration locally using jwt-decode before returning.
-      // If expired, fall through to refreshSession().
       return accessToken;
     }
     return await refreshSession();
   }, [accessToken, refreshSession]);
 
-  const signIn = useCallback((data: {user: User, token: string}) => {
+  const signIn = useCallback((data: AuthFormState) => {
     setUser(data.user);
     setAccessToken(data.token);
   }, []);
 
-  const signOut = useCallback(() => {
-    setUser(null);
-    setAccessToken(null);
+  // Clear DB token, delete cookie, then clear client memory
+  const signOut = useCallback(async () => {
+    try {
+      await signOutAction();
+    } catch (error) {
+      console.error("Sign out action error:", error);
+    } finally {
+      setUser(undefined);
+      setAccessToken(undefined);
+    }
   }, []);
 
   return (

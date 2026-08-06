@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SimpleHeader from "@/components/SimpleHeader";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +31,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <SimpleHeader/>
-        <ProtectedRoute>
+        <ProtectedRoute fallback={<LoadingSpinner message="Verifying session..."/>}>
         {children}
         </ProtectedRoute>
       </body>

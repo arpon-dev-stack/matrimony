@@ -27,8 +27,8 @@ export interface User {
 }
 
 export interface AuthFormState {
-  error?: string;
-  user?: User;
-  success?: boolean;
-  token?: string;
+  error: string | undefined;
+  user: User | undefined;
+  success: boolean | undefined;
+  token: string | undefined;
 }

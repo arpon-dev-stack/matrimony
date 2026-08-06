@@ -27,7 +27,7 @@ export default function ProtectedRoute({
       if (!accessToken || !user) {
         const token = await getValidToken();
         if (!token && isMounted) {
-          router.replace("/login");
+          router.replace("/signin");
           return;
         }
       }

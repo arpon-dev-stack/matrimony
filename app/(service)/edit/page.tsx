@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { CldUploadWidget } from "next-cloudinary";
 import Link from "next/link";
+import { useAuth } from "@/app/_store/AuthContext";
 import {
   ArrowLeft,
   Camera,
@@ -42,36 +43,41 @@ export const EditProfile: React.FC<EditProfileProps> = ({
   user,
   updateProfileAction,
 }) => {
+  const { user: user2 } = useAuth();
+
+  // Consolidate target user data with user2 taking priority over prop
+  const activeUser = user2 || user;
+
   // Extract initial profile image from DB images array
   const initialProfileImg =
-    user?.images?.find((img) => img.isProfile)?.url ||
-    user?.images?.[0]?.url ||
+    activeUser?.images?.find((img: any) => img.isProfile)?.url ||
+    activeUser?.images?.[0]?.url ||
     "";
 
   // Extract gallery images from DB (excluding profile image)
   const initialGallery =
-    user?.images
-      ?.filter((img) => !img.isProfile)
-      .map((img, idx) => ({
+    activeUser?.images
+      ?.filter((img: any) => !img.isProfile)
+      .map((img: any, idx: number) => ({
         id: idx.toString(),
         src: img.url,
       })) || [];
 
-  // --- Form States ---
+  // --- Form States populated with user2 / fallback values ---
   const [profileImage, setProfileImage] = useState<string>(initialProfileImg);
-  const [fullName, setFullName] = useState<string>(user?.name || "");
-  const [bio, setBio] = useState<string>(user?.bio || "");
-  const [occupation, setOccupation] = useState<string>(user?.occupation || "");
-  const [location, setLocation] = useState<string>(user?.location || "");
-  const [education, setEducation] = useState<string>(user?.education || "");
-  const [religion, setReligion] = useState<string>(user?.religion || "");
-  const [language, setLanguage] = useState<string>(user?.language || "");
-  const [familyValue, setFamilyValue] = useState<string>(user?.familyvalue || "Modern");
-  const [fitnessRoutine, setFitnessRoutine] = useState<string>(user?.fitnessroutin || "3-4 times a week");
-  const [dietary, setDietary] = useState<string>(user?.vegetarian ? "Vegetarian" : "Non-Vegetarian");
+  const [fullName, setFullName] = useState<string>(activeUser?.name || "");
+  const [bio, setBio] = useState<string>(activeUser?.bio || "");
+  const [occupation, setOccupation] = useState<string>(activeUser?.occupation || "");
+  const [location, setLocation] = useState<string>(activeUser?.location || "");
+  const [education, setEducation] = useState<string>(activeUser?.education || "");
+  const [religion, setReligion] = useState<string>(activeUser?.religion || "");
+  const [language, setLanguage] = useState<string>(activeUser?.language || "");
+  const [familyValue, setFamilyValue] = useState<string>(activeUser?.familyvalue || "Modern");
+  const [fitnessRoutine, setFitnessRoutine] = useState<string>(activeUser?.fitnessroutin || "3-4 times a week");
+  const [dietary, setDietary] = useState<string>(activeUser?.vegetarian ? "Vegetarian" : "Non-Vegetarian");
 
   // --- Dynamic Interests List ---
-  const [interests, setInterests] = useState<string[]>(user?.interests || []);
+  const [interests, setInterests] = useState<string[]>(activeUser?.interests || []);
   const [newInterest, setNewInterest] = useState("");
   const [isAddingInterest, setIsAddingInterest] = useState(false);
 
@@ -97,7 +103,6 @@ export const EditProfile: React.FC<EditProfileProps> = ({
 
   return (
     <div className="min-h-screen bg-[#fbf9f8] text-[#1b1c1c] font-sans antialiased pb-16 md:pb-12">
-
       {/* Main Content Area */}
       <main className="max-w-[900px] mx-auto px-4 md:px-16 py-12">
         <form action={updateProfileAction}>

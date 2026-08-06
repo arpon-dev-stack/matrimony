@@ -9,7 +9,7 @@ import { useAuth } from "@/app/_store/AuthContext";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const {} = useAuth();
+  const { user } = useAuth();
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -66,12 +66,16 @@ const Navbar = () => {
 
         {/* Right Side Action Buttons */}
         <div className="flex items-center gap-4">
-          <button className="text-[#43474e] hover:text-[#000d22] transition-colors font-medium">
-            <Link href="/signin" className="flex items-center gap-2">
-              Log In
+          <div className="text-[#43474e] hover:text-[#000d22] transition-colors font-medium">
+            {user ? (
               <CircleUser />
-            </Link>
-          </button>
+            ) : (
+              <Link href="/signin" className="flex items-center gap-2">
+                Log In
+                <CircleUser />
+              </Link>
+            )}
+          </div>
           <Link
             href="/signup"
             className="hidden md:flex justify-center items-center bg-gradient-to-r from-[#C5A059] to-[#B08C45] text-white h-10 px-4 rounded-lg font-medium transition-transform active:scale-95"
