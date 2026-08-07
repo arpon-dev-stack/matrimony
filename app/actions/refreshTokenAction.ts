@@ -50,10 +50,11 @@ export async function refreshTokenAction() {
     const user: User = {
       interests: existingUser.interests,
       vegetarian: existingUser.vegetarian,
-      fitnessroutin: existingUser.fitnessroutin,
+      fitness_routin: existingUser.fitnessroutin,
       bio: existingUser.bio,
       images: existingUser.images,
-      familyvalue: existingUser.familyValue,
+      language: existingUser.language,
+      family_value: existingUser.familyValue,
       id: existingUser.id,
       name: existingUser.name,
       email: existingUser.email,

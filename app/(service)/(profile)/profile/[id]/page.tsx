@@ -3,13 +3,13 @@ import { notFound } from "next/navigation";
 import { db } from "@/app/lib/bd";
 import { PrimaryGoldButton } from "@/components/buttons/PrimaryColdenButton";
 import { SecondaryOutlineButton } from "@/components/buttons/SecondaryOutlineButton";
+import { User } from "@/app/types/auth";
 import {
   CheckCircle2,
   Calendar,
   MapPin,
   Heart,
   Mail,
-  Compass,
   GraduationCap,
   Ruler,
   UserCheck,
@@ -25,26 +25,6 @@ interface ImageItem {
   url: string;
   is_profile: boolean;
   is_removed: boolean;
-}
-
-interface User {
-  id: number;
-  name: string | null;
-  email: string | null;
-  gender: string | null;
-  age: number | null;
-  location: string | null;
-  completed: boolean;
-  religion: string | null;
-  occupation: string | null;
-  education: string | null;
-  is_verified: boolean;
-  created_at: string;
-  vegetarian: boolean | null;
-  bio: string | string[] | null;
-  interests: string[] | null;
-  images: ImageItem[] | null;
-  height?: string | null;
 }
 
 interface PageProps {

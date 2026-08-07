@@ -1,10 +1,10 @@
 // components/ProfileData.tsx
 
 import ProfileCard from "./ProfileCard";
-import { Profile } from "@/app/lib/profiles";
+import { CardProfile } from "@/app/lib/profiles";
 
 interface ProfileDataProps {
-  profiles: Profile[];
+  profiles: CardProfile[];
 }
 
 const ProfileData = ({ profiles }: ProfileDataProps) => {

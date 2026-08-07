@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { LocateIcon } from "lucide-react";
-export default function ProfileCard({ profile }) {
+import { CardProfile } from "@/app/lib/profiles";
+export default function ProfileCard({ profile }: {profile: CardProfile}) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (

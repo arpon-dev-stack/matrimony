@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { AuthFormState, User } from '../types/auth';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { User, AuthUser } from '../types/auth';
 import { refreshTokenAction } from '../actions/refreshTokenAction';
 import { signOutAction } from '../actions/signOutAction'; // Import signout server action
 
@@ -9,10 +9,10 @@ export type AuthContextType = {
   user: User | undefined;
   accessToken: string | undefined;
   isLoading: boolean;
-  signIn: (data: { user: User; token: string }) => void;
+  signIn: (data: AuthUser) => void;
   signOut: () => Promise<void>; // Updated to Promise<void>
   getValidToken: () => Promise<string | undefined>;
-  updateUser: (updatedFields: Partial<any>) => void;
+  updateUser: (updatedFields: User) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return await refreshSession();
   }, [accessToken, refreshSession]);
 
-  const signIn = useCallback((data: AuthFormState) => {
+  const signIn = useCallback((data: AuthUser) => {
     setUser(data.user);
     setAccessToken(data.token);
   }, []);
@@ -78,8 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updateUser = useCallback((updatedFields: Partial<any>) => {
-    setUser((prevUser: any) => ({
+  const updateUser = useCallback((updatedFields: User) => {
+    setUser((prevUser: User | undefined) => ({
       ...prevUser,
       ...updatedFields,
     }));

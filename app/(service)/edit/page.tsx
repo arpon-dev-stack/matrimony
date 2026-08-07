@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/_store/AuthContext";
 import { updateProfileAction } from "@/app/actions/updateProfileAction";
+import { UserImage } from "@/app/types/auth";
 import {
   Camera,
   Plus,
@@ -27,17 +28,17 @@ export const EditProfile: React.FC = () => {
 
   // Filter out soft-deleted images (where is_removed is true)
   const activeImages =
-    activeUser?.images?.filter((img: any) => !img.is_removed) || [];
+    activeUser?.images?.filter((img: UserImage) => !img.is_removed) || [];
 
   // Initial Form States
   const initialProfileImg =
-    activeImages.find((img: any) => img.is_profile)?.url ||
+    activeImages.find((img: UserImage) => img.is_profile)?.url ||
     activeImages[0]?.url ||
     "";
 
   const initialGallery = activeImages
-    .filter((img: any) => !img.is_profile)
-    .map((img: any, idx: number) => ({
+    .filter((img: UserImage) => !img.is_profile)
+    .map((img: UserImage, idx: number) => ({
       id: idx.toString(),
       src: img.url,
       is_removed: false,
@@ -51,8 +52,8 @@ export const EditProfile: React.FC = () => {
   const [education, setEducation] = useState<string>(activeUser?.education || "");
   const [religion, setReligion] = useState<string>(activeUser?.religion || "");
   const [language, setLanguage] = useState<string>(activeUser?.language || "");
-  const [familyValue, setFamilyValue] = useState<string>(activeUser?.familyvalue || "Modern");
-  const [fitnessRoutine, setFitnessRoutine] = useState<string>(activeUser?.fitnessroutin || "3-4 times a week");
+  const [familyValue, setFamilyValue] = useState<string>(activeUser?.family_value || "Modern");
+  const [fitnessRoutine, setFitnessRoutine] = useState<string>(activeUser?.fitness_routin || "3-4 times a week");
   const [dietary, setDietary] = useState<string>(activeUser?.vegetarian ? "Vegetarian" : "Non-Vegetarian");
 
   const [interests, setInterests] = useState<string[]>(activeUser?.interests || []);
@@ -79,7 +80,7 @@ export const EditProfile: React.FC = () => {
   };
 
   // Submit Handler using Transition & Auth State Sync
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
@@ -129,7 +130,7 @@ export const EditProfile: React.FC = () => {
       <main className="max-w-[900px] mx-auto px-4 md:px-16 py-12">
         <form onSubmit={handleSubmit}>
           {/* Hidden Inputs for Form Data Serialization */}
-          <input type="hidden" name="id" value={user.id} />
+          <input type="hidden" name="id" value={user?.id} />
           <input type="hidden" name="accessToken" value={accessToken} />
           <input type="hidden" name="profileImage" value={profileImage} />
           <input type="hidden" name="interests" value={JSON.stringify(interests)} />

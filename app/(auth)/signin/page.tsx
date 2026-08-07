@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useActionState, useRef } from "react";
+import React, {startTransition, useState, useEffect, useActionState, useRef } from "react";
 import { Mail, Lock, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/app/_store/AuthContext"; // Import your AuthContext hook
@@ -28,7 +28,7 @@ export default function SignInForm() {
 
     const formData = new FormData(e.currentTarget);
 
-    React.startTransition(() => {
+    startTransition(() => {
       formAction(formData);
     });
   };
@@ -191,7 +191,7 @@ export default function SignInForm() {
 
           <footer className="text-center">
             <p className="text-base text-[#43474e]">
-              Don't have an account?{" "}
+              Don`&quot`t have an account?{" "}
               <Link
                 href="/signup"
                 className="text-[#000d22] font-semibold hover:text-[#775a19] transition-colors duration-300 ml-1"

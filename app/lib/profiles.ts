@@ -32,7 +32,7 @@ export interface UserRow {
   images: ImageItem[] | null;
 }
 
-export interface Profile {
+export interface CardProfile {
   id: number;
   name: string;
   gender?: string;
@@ -49,7 +49,7 @@ export interface Profile {
 /**
  * Maps a raw database row from the `users` table to the UI `Profile` format.
  */
-function mapUserToProfile(user: UserRow): Profile {
+function mapUserToProfile(user: UserRow): CardProfile {
   // Extract non-removed profile picture or fallback to first active image
   const activeImages = user.images?.filter((img) => !img.is_removed) || [];
   const primaryImage =
@@ -85,7 +85,7 @@ export async function getFilteredProfiles(params: {
   religion?: string;
   education?: string;
   interests?: string;
-}): Promise<Profile[]> {
+}): Promise<CardProfile[]> {
   let query = db.from("users").select("*");
 
   // 1. Gender check

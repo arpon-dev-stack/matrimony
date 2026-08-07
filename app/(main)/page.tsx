@@ -1,7 +1,6 @@
-"use client";
+"use server";
 
-import React, { useState, useEffect } from "react";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight} from "lucide-react";
 import Link from "next/link";
 import HomeSearch from "@/components/HomeSearch";
 
@@ -94,32 +93,7 @@ const SUCCESS_STORIES: Story[] = [
   },
 ];
 
-export default function EternalUnionMatrimony() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [connectedProfiles, setConnectedProfiles] = useState<number[]>([]);
-
-  // Handle scroll detection for sticky navbar shadow
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const toggleConnect = (id: number) => {
-    setConnectedProfiles((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
+export  default async function EternalUnionMatrimony() {
 
   return (
     <main className="bg-[#fbf9f8] text-[#1b1c1c] font-sans selection:bg-[#fed488] min-h-screen">
@@ -171,7 +145,7 @@ export default function EternalUnionMatrimony() {
                 key={story.id}
                 className="bg-white p-2 rounded-xl shadow-[0_12px_32px_-8px_rgba(0,35,73,0.08)] flex flex-col gap-6 items-center"
               >
-                <div className="w-full h-40 flex-shrink-0 rounded-lg overflow-hidden">
+                <div className="w-full h-40 shrink-0 rounded-lg overflow-hidden">
                   <div
                     className="w-full h-full bg-cover bg-center"
                     style={{ backgroundImage: `url("${story.imageUrl}")` }}
@@ -179,7 +153,7 @@ export default function EternalUnionMatrimony() {
                 </div>
                 <div>
                   <p className="italic text-[#43474e] text-sm mb-4">
-                    "{story.quote}"
+                    `&quot`{story.quote}`&quot`
                   </p>
                   <h4 className="font-serif text-[#000d22] text-lg font-bold">
                     {story.names}
@@ -207,7 +181,6 @@ export default function EternalUnionMatrimony() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {FEATURED_PROFILES.map((profile) => {
-            const isConnected = connectedProfiles.includes(profile.id);
             return (
               <div
                 key={profile.id}

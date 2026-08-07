@@ -3,6 +3,7 @@
 import React from "react";
 import { useAuth } from "@/app/_store/AuthContext";
 import Link from "next/link";
+import { User, UserImage } from "@/app/types/auth";
 import {
   CheckCircle2,
   Calendar,
@@ -19,31 +20,6 @@ import {
   Clock,
 } from "lucide-react";
 
-// TypeScript Interface matching your Auth Context User Object
-interface ImageItem {
-  url: string;
-  is_profile: boolean;
-  is_removed: boolean;
-}
-
-interface User {
-  id: number;
-  name: string | null;
-  email: string | null;
-  gender: string | null;
-  age: number | null;
-  location: string | null;
-  completed: boolean;
-  religion: string | null;
-  occupation: string | null;
-  education: string | null;
-  is_verified: boolean;
-  created_at: string;
-  vegetarian: boolean | null;
-  bio: string | string[] | null;
-  interests: string[] | null;
-  images: ImageItem[] | null;
-}
 
 export default function UserProfile() {
   const { user, signOut } = useAuth() as { user: User | null; signOut: () => void };

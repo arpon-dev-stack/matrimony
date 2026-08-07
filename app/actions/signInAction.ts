@@ -1,15 +1,15 @@
 "use server";
 
-import { AuthFormState, User } from "../types/auth";
+import { User } from "../types/auth";
 import { generateTokens } from "../lib/tokenGenerator";
 import { verifyPassword } from "../lib/auth";
 import { cookies } from "next/headers";
 import { db } from "../lib/bd";
-
+import { AuthUser } from "../types/auth";
 export async function signInAction(
-  prevState: AuthFormState | null,
+  prevState: AuthUser | null,
   formData: FormData,
-): Promise<AuthFormState> {
+): Promise<AuthUser> {
   const email = formData.get("email")?.toString().trim().toLowerCase();
   const password = formData.get("password")?.toString();
 
