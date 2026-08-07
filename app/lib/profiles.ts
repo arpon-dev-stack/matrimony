@@ -2,6 +2,36 @@
 
 import { db } from "./bd";
 
+export interface ImageItem {
+  url: string;
+  is_profile: boolean;
+  is_removed: boolean;
+}
+
+export interface UserRow {
+  id: number;
+  name: string;
+  joining_for: string;
+  email: string;
+  gender: string;
+  age: number | null;
+  agree_with: boolean;
+  location: string | null;
+  completed: boolean;
+  religion: string | null;
+  occupation: string | null;
+  education: string | null;
+  is_verified: boolean;
+  created_at: string;
+  vegetarian: string | null;
+  interests: string[] | null;
+  fitness_routin: string | null;
+  language: string | null;
+  family_value: string | null;
+  bio: string | null;
+  images: ImageItem[] | null;
+}
+
 export interface Profile {
   id: number;
   name: string;
@@ -16,60 +46,37 @@ export interface Profile {
   imageUrl: string;
 }
 
-export const PROFILES_DATA: Profile[] = [
-  {
-    id: 1,
-    name: "Alexander Sterling",
-    gender: "Man",
-    age: 29,
-    location: "Kensington, London",
-    religion: "Christianity",
-    profession: "Investment Banker",
-    education: "MBA, Cambridge",
-    badge: "Verified",
-    tags: ["Philosophy", "Polo", "Travel", "Fine Arts"],
-    imageUrl: "https://lh3.googleusercontent.com/aida-public/...",
-  },
-  {
-    id: 2,
-    name: "Seraphina Chen",
-    gender: "Woman",
-    age: 27,
-    location: "Dhaka",
-    religion: "Hinduism",
-    profession: "Neurosurgeon",
-    education: "Masters",
-    badge: "Premium",
-    tags: ["Fine Arts", "Cello", "Wine Tasting"],
-    imageUrl: "https://lh3.googleusercontent.com/aida-public/...",
-  },
-  {
-    id: 3,
-    name: "Vikram Malhotra",
-    gender: "Man",
-    age: 31,
-    location: "Downtown, Dubai",
-    religion: "Hinduism",
-    profession: "Tech Entrepreneur",
-    education: "MSc, Stanford",
-    badge: null,
-    tags: ["Yachting", "Aviation", "Golf"],
-    imageUrl: "https://lh3.googleusercontent.com/aida-public/...",
-  },
-  {
-    id: 4,
-    name: "Isabella Vane",
-    gender: "Woman",
-    age: 28,
-    location: "Dhaka",
-    religion: "Christianity",
-    profession: "Corporate Lawyer",
-    education: "Masters",
-    badge: null,
-    tags: ["Literature", "Fine Arts", "Classical Opera"],
-    imageUrl: "https://lh3.googleusercontent.com/aida-public/...",
-  },
-];
+/**
+ * Maps a raw database row from the `users` table to the UI `Profile` format.
+ */
+function mapUserToProfile(user: UserRow): Profile {
+  // Extract non-removed profile picture or fallback to first active image
+  const activeImages = user.images?.filter((img) => !img.is_removed) || [];
+  const primaryImage =
+    activeImages.find((img) => img.is_profile)?.url ||
+    activeImages[0]?.url ||
+    "https://via.placeholder.com/600x750?text=No+Profile+Picture";
+
+  // Determine badge status
+  let badge: string | null = null;
+  if (user.is_verified) {
+    badge = "Verified";
+  }
+
+  return {
+    id: user.id,
+    name: user.name || "Anonymous",
+    gender: user.gender,
+    age: user.age ?? 0,
+    location: user.location || "N/A",
+    religion: user.religion || undefined,
+    profession: user.occupation || "N/A",
+    education: user.education || "N/A",
+    badge,
+    tags: user.interests || [],
+    imageUrl: primaryImage,
+  };
+}
 
 export async function getFilteredProfiles(params: {
   lookingFor?: string;
@@ -79,83 +86,93 @@ export async function getFilteredProfiles(params: {
   education?: string;
   interests?: string;
 }): Promise<Profile[]> {
-  // If fetching from a real API backend, construct your query here:
-  // const res = await fetch(`https://api.example.com/profiles?${new URLSearchParams(params)}`);
-  // return res.json();
+  let query = db.from("users").select("*");
 
-  return PROFILES_DATA.filter((profile) => {
-    // 1. Gender check
-    if (params.lookingFor && profile.gender) {
-      if (profile.gender.toLowerCase() !== params.lookingFor.toLowerCase()) {
-        return false;
-      }
+  // 1. Gender check
+  if (params.lookingFor) {
+    query = query.ilike("gender", params.lookingFor.trim());
+  }
+
+  // 2. Age Range check (e.g., "24 - 30")
+  if (params.ageRange) {
+    const [minAge, maxAge] = params.ageRange
+      .split("-")
+      .map((val) => parseInt(val.trim(), 10));
+
+    if (!isNaN(minAge)) {
+      query = query.gte("age", minAge);
     }
-
-    // 2. Age Range check (e.g., "24 - 30")
-    if (params.ageRange) {
-      const [minAge, maxAge] = params.ageRange
-        .split("-")
-        .map((val) => parseInt(val.trim(), 10));
-      if (!isNaN(minAge) && profile.age < minAge) return false;
-      if (!isNaN(maxAge) && profile.age > maxAge) return false;
+    if (!isNaN(maxAge)) {
+      query = query.lte("age", maxAge);
     }
+  }
 
-    // 3. Location check
-    if (
-      params.location &&
-      !profile.location.toLowerCase().includes(params.location.toLowerCase())
-    ) {
-      return false;
+  // 3. Location check
+  if (params.location) {
+    query = query.ilike("location", `%${params.location.trim()}%`);
+  }
+
+  // 4. Multi-value Religion check (comma-separated: "Hinduism,Christianity")
+  if (params.religion) {
+    const selectedReligions = params.religion
+      .split(",")
+      .map((r) => r.trim())
+      .filter(Boolean);
+
+    if (selectedReligions.length > 0) {
+      query = query.in("religion", selectedReligions);
     }
+  }
 
-    // 4. Multi-value Religion check (comma separated: "Hinduism,Christianity")
-    if (params.religion && profile.religion) {
-      const selectedReligions = params.religion
-        .split(",")
-        .map((r) => r.trim().toLowerCase());
-      if (!selectedReligions.includes(profile.religion.toLowerCase())) {
-        return false;
-      }
+  // 5. Education check
+  if (params.education) {
+    query = query.ilike("education", `%${params.education.trim()}%`);
+  }
+
+  // 6. Interests / Tags check (PostgreSQL array overlap)
+  if (params.interests) {
+    const requestedInterests = params.interests
+      .split(",")
+      .map((i) => i.trim())
+      .filter(Boolean);
+
+    if (requestedInterests.length > 0) {
+      query = query.overlaps("interests", requestedInterests);
     }
+  }
 
-    // 5. Education check
-    if (
-      params.education &&
-      !profile.education.toLowerCase().includes(params.education.toLowerCase())
-    ) {
-      return false;
-    }
+  const { data, error } = await query;
 
-    // 6. Interests / Tags check (comma separated: "Fine Arts")
-    if (params.interests) {
-      const requestedInterests = params.interests
-        .split(",")
-        .map((i) => i.trim().toLowerCase());
-      const profileTags = profile.tags.map((t) => t.toLowerCase());
-      const hasMatchingInterest = requestedInterests.some((interest) =>
-        profileTags.includes(interest),
-      );
-      if (!hasMatchingInterest) return false;
-    }
+  if (error) {
+    console.error("Error fetching filtered profiles:", error.message);
+    return [];
+  }
 
-    return true;
-  });
+  return (data as UserRow[]).map(mapUserToProfile);
 }
 
-export async function getProfile(id: number): Promise<T> {
-  const { data: user } = await db
+export async function getProfile(id: number): Promise<{ user: UserRow | null }> {
+  const { data: user, error } = await db
     .from("users")
     .select("*")
     .eq("id", id)
     .maybeSingle();
 
+  if (error) {
+    console.error(`Error fetching profile with id ${id}:`, error.message);
+    return { user: null };
+  }
+
   return { user };
 }
 
-export async function getProfiles(): Promise<T> {
-  const { data: users } = await db
-    .from("users")
-    .select("*");
+export async function getProfiles(): Promise<{ users: UserRow[] }> {
+  const { data: users, error } = await db.from("users").select("*");
 
-  return { users };
+  if (error) {
+    console.error("Error fetching all profiles:", error.message);
+    return { users: [] };
+  }
+
+  return { users: users as UserRow[] };
 }

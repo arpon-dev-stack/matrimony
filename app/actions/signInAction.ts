@@ -41,7 +41,7 @@ export async function signInAction(
 
     const { error: updateError } = await db
       .from("users")
-      .update({ refreshtoken: refreshToken })
+      .update({ refresh_token: refreshToken })
       .eq("id", existingUser.id);
 
     if (updateError) {
@@ -62,11 +62,12 @@ export async function signInAction(
     const user: User = {
       interests: existingUser.interests,
       vegetarian: existingUser.vegetarian,
-      fitnessroutin: existingUser.fitnessroutin,
+      fitness_routin: existingUser.fitnessroutin,
       bio: existingUser.bio,
       images: existingUser.images,
-      familyvalue: existingUser.familyValue,
+      family_value: existingUser.familyValue,
       id: existingUser.id,
+      language: existingUser.language,
       name: existingUser.name,
       email: existingUser.email,
       gender: existingUser.gender,

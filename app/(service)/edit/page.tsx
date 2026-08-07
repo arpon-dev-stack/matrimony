@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useActionState } from "react";
+import React, { useState, useTransition } from "react";
 import { CldUploadWidget } from "next-cloudinary";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/_store/AuthContext";
 import { updateProfileAction } from "@/app/actions/updateProfileAction";
 import {
-  ArrowLeft,
   Camera,
   Plus,
   X,
@@ -16,52 +16,33 @@ import {
   ShieldCheck,
   Info,
   UserX,
-  FileText,
 } from "lucide-react";
 
-export interface UserDBRecord {
-  id: number;
-  name: string;
-  bio: string | null;
-  occupation: string | null;
-  location: string | null;
-  education: string | null;
-  religion: string | null;
-  language: string | null;
-  familyvalue: string | null;
-  fitnessroutin: string | null;
-  vegetarian: boolean | null;
-  interests: string[] | null;
-  images: { url: string; isProfile: boolean }[] | null;
-}
-
-interface EditProfileProps {
-  user: UserDBRecord;
-  updateProfileAction: (formData: FormData) => Promise<void>;
-}
-
 export const EditProfile: React.FC = () => {
-  const { user, accessToken } = useAuth();
-const [state, formAction, isPending] = useActionState(updateProfileAction, null);
-  // Consolidate target user data with user2 taking priority over prop
-  const activeUser = user
+  const { user, accessToken, updateUser } = useAuth();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
-  // Extract initial profile image from DB images array
+  const activeUser = user;
+
+  // Filter out soft-deleted images (where is_removed is true)
+  const activeImages =
+    activeUser?.images?.filter((img: any) => !img.is_removed) || [];
+
+  // Initial Form States
   const initialProfileImg =
-    activeUser?.images?.find((img: any) => img.isProfile)?.url ||
-    activeUser?.images?.[0]?.url ||
+    activeImages.find((img: any) => img.is_profile)?.url ||
+    activeImages[0]?.url ||
     "";
 
-  // Extract gallery images from DB (excluding profile image)
-  const initialGallery =
-    activeUser?.images
-      ?.filter((img: any) => !img.isProfile)
-      .map((img: any, idx: number) => ({
-        id: idx.toString(),
-        src: img.url,
-      })) || [];
+  const initialGallery = activeImages
+    .filter((img: any) => !img.is_profile)
+    .map((img: any, idx: number) => ({
+      id: idx.toString(),
+      src: img.url,
+      is_removed: false,
+    }));
 
-  // --- Form States populated with user2 / fallback values ---
   const [profileImage, setProfileImage] = useState<string>(initialProfileImg);
   const [fullName, setFullName] = useState<string>(activeUser?.name || "");
   const [bio, setBio] = useState<string>(activeUser?.bio || "");
@@ -74,15 +55,13 @@ const [state, formAction, isPending] = useActionState(updateProfileAction, null)
   const [fitnessRoutine, setFitnessRoutine] = useState<string>(activeUser?.fitnessroutin || "3-4 times a week");
   const [dietary, setDietary] = useState<string>(activeUser?.vegetarian ? "Vegetarian" : "Non-Vegetarian");
 
-  // --- Dynamic Interests List ---
   const [interests, setInterests] = useState<string[]>(activeUser?.interests || []);
   const [newInterest, setNewInterest] = useState("");
   const [isAddingInterest, setIsAddingInterest] = useState(false);
+  
+  // Gallery state now retains the `is_removed` attribute
+  const [gallery, setGallery] = useState<{ id: string; src: string; is_removed: boolean }[]>(initialGallery);
 
-  // --- Gallery State ---
-  const [gallery, setGallery] = useState<{ id: string; src: string }[]>(initialGallery);
-
-  // --- Handlers ---
   const handleRemoveInterest = (tag: string) => {
     setInterests(interests.filter((i) => i !== tag));
   };
@@ -96,15 +75,61 @@ const [state, formAction, isPending] = useActionState(updateProfileAction, null)
   };
 
   const handleDeletePhoto = (id: string) => {
-    setGallery(gallery.filter((item) => item.id !== id));
+    setGallery((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Submit Handler using Transition & Auth State Sync
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    startTransition(async () => {
+      try {
+        const res = await updateProfileAction({ success: false }, formData);
+
+        if (res?.success) {
+          // Reconstruct updated images array structure with explicit schema attributes
+          const updatedImages = [
+            ...(profileImage
+              ? [{ url: profileImage, is_profile: true, is_removed: false }]
+              : []),
+            ...gallery.map((g) => ({
+              url: g.src,
+              is_profile: false,
+              is_removed: g.is_removed ?? false,
+            })),
+          ];
+
+          // Sync client-side Auth Context
+          updateUser({
+            name: fullName,
+            bio,
+            occupation,
+            location,
+            education,
+            religion,
+            language,
+            familyvalue: familyValue,
+            fitnessroutin: fitnessRoutine,
+            vegetarian: dietary === "Vegetarian",
+            interests,
+            images: updatedImages,
+          });
+
+          router.push("/user");
+        }
+      } catch (err) {
+        console.error("Failed to update profile:", err);
+      }
+    });
   };
 
   return (
     <div className="min-h-screen bg-[#fbf9f8] text-[#1b1c1c] font-sans antialiased pb-16 md:pb-12">
-      {/* Main Content Area */}
       <main className="max-w-[900px] mx-auto px-4 md:px-16 py-12">
-        <form action={formAction}>
-          {/* Hidden Inputs for Complex State Serialization */}
+        <form onSubmit={handleSubmit}>
+          {/* Hidden Inputs for Form Data Serialization */}
+          <input type="hidden" name="id" value={user.id} />
           <input type="hidden" name="accessToken" value={accessToken} />
           <input type="hidden" name="profileImage" value={profileImage} />
           <input type="hidden" name="interests" value={JSON.stringify(interests)} />
@@ -125,7 +150,6 @@ const [state, formAction, isPending] = useActionState(updateProfileAction, null)
                 )}
               </div>
 
-              {/* Cloudinary Upload for Profile Picture */}
               <CldUploadWidget
                 uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
                 onSuccess={(result: any) => {
@@ -162,15 +186,12 @@ const [state, formAction, isPending] = useActionState(updateProfileAction, null)
                 />
               </div>
 
-              {/* About / Bio Input */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
                     About You (Bio)
                   </label>
-                  <span className="text-xs text-[#43474e]">
-                    {bio.length}/500
-                  </span>
+                  <span className="text-xs text-[#43474e]">{bio.length}/500</span>
                 </div>
                 <textarea
                   name="bio"
@@ -178,7 +199,7 @@ const [state, formAction, isPending] = useActionState(updateProfileAction, null)
                   maxLength={500}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="Share a little bit about yourself, your story, or what you're looking for..."
+                  placeholder="Share a little bit about yourself..."
                   className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none transition-colors text-base resize-y min-h-[90px]"
                 />
               </div>
@@ -212,16 +233,14 @@ const [state, formAction, isPending] = useActionState(updateProfileAction, null)
             </div>
           </section>
 
-          {/* Moments & Journeys Gallery */}
+          {/* Gallery Section */}
           <section className="mb-12">
             <div className="flex justify-between items-end mb-6">
               <div>
                 <h2 className="font-serif text-2xl font-semibold text-[#000d22]">
                   Moments &amp; Journeys
                 </h2>
-                <p className="text-sm text-[#43474e]">
-                  Upload additional gallery pictures
-                </p>
+                <p className="text-sm text-[#43474e]">Upload additional gallery pictures</p>
               </div>
 
               <CldUploadWidget
@@ -230,7 +249,11 @@ const [state, formAction, isPending] = useActionState(updateProfileAction, null)
                   if (result?.info?.secure_url) {
                     setGallery((prev) => [
                       ...prev,
-                      { id: Date.now().toString(), src: result.info.secure_url },
+                      {
+                        id: Date.now().toString(),
+                        src: result.info.secure_url,
+                        is_removed: false,
+                      },
                     ]);
                   }
                 }}
@@ -249,33 +272,35 @@ const [state, formAction, isPending] = useActionState(updateProfileAction, null)
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {gallery.map((item) => (
-                <div
-                  key={item.id}
-                  className="relative group aspect-square rounded-xl overflow-hidden border border-[#c4c6cf]/30"
-                >
-                  <img
-                    className="w-full h-full object-cover"
-                    src={item.src}
-                    alt="Gallery item"
-                  />
-                  <div className="absolute inset-0 bg-[#000d22]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <button
-                      type="button"
-                      className="p-2 bg-white rounded-full text-[#000d22] shadow-lg hover:bg-gray-100"
-                    >
-                      <GripVertical className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeletePhoto(item.id)}
-                      className="p-2 bg-[#ffdad6] rounded-full text-[#ba1a1a] shadow-lg hover:bg-red-200"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+              {gallery
+                .filter((item) => !item.is_removed)
+                .map((item) => (
+                  <div
+                    key={item.id}
+                    className="relative group aspect-square rounded-xl overflow-hidden border border-[#c4c6cf]/30"
+                  >
+                    <img
+                      className="w-full h-full object-cover"
+                      src={item.src}
+                      alt="Gallery item"
+                    />
+                    <div className="absolute inset-0 bg-[#000d22]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        className="p-2 bg-white rounded-full text-[#000d22] shadow-lg hover:bg-gray-100"
+                      >
+                        <GripVertical className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePhoto(item.id)}
+                        className="p-2 bg-[#ffdad6] rounded-full text-[#ba1a1a] shadow-lg hover:bg-red-200"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
               <CldUploadWidget
                 uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
@@ -283,7 +308,11 @@ const [state, formAction, isPending] = useActionState(updateProfileAction, null)
                   if (result?.info?.secure_url) {
                     setGallery((prev) => [
                       ...prev,
-                      { id: Date.now().toString(), src: result.info.secure_url },
+                      {
+                        id: Date.now().toString(),
+                        src: result.info.secure_url,
+                        is_removed: false,
+                      },
                     ]);
                   }
                 }}
@@ -495,14 +524,14 @@ const [state, formAction, isPending] = useActionState(updateProfileAction, null)
             </Link>
             <button
               type="submit"
-              className="px-6 py-2 bg-gradient-to-r from-[#C5A059] to-[#B08C45] text-white font-medium rounded-lg shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all"
+              disabled={isPending}
+              className="px-6 py-2 bg-gradient-to-r from-[#C5A059] to-[#B08C45] text-white font-medium rounded-lg shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all disabled:opacity-50"
             >
-              Save Changes
+              {isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
 
-        {/* Danger Zone */}
         <div className="mt-12 flex justify-center">
           <button
             type="button"

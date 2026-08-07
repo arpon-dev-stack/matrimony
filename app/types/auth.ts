@@ -8,11 +8,12 @@ export interface UserImage {
 export interface User {
   interests?: string[];
   vegetarian?: boolean;
-  fitnessroutin?: string;
+  fitness_routin?: string;
   bio?: string;
   images?: UserImage[];
-  familyvalue?: string;
+  family_value?: string;
   id: number;
+  language: string;
   name: string;
   email: string;
   gender: Gender;
@@ -27,10 +28,10 @@ export interface User {
 }
 
 export interface AuthFormState {
-  error: string | undefined;
-  user: User | undefined;
-  success: boolean | undefined;
-  token: string | undefined;
+  error?: string;
+  user?: User;
+  success?: boolean;
+  token?: string;
 }
 
 export interface UpdateProfile {error?: string, success?: boolean}

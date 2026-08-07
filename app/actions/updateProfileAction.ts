@@ -1,21 +1,35 @@
 'use server';
 
-import { cookies } from "next/headers";
-import { UpdateProfile, UserImage } from "../types/auth";
 import { revalidatePath } from "next/cache";
+import { UpdateProfile } from "../types/auth";
+import { db } from "@/app/lib/bd";
 
+export async function updateProfileAction(
+  prevState: UpdateProfile,
+  formData: FormData
+): Promise<UpdateProfile> {
+  // 1. Extract Authorization Token & User ID from FormData
+  const accessToken = formData.get("accessToken")?.toString();
+  const userPayload = formData.get("id")?.toString();
 
-export async function updateProfileAction(prevState: UpdateProfile,formData: FormData): Promise<UpdateProfile> {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get("session")?.value;
-
-  if (!sessionToken) {
-    throw new Error("Unauthorized");
+  if (!accessToken) {
+    throw new Error("Unauthorized: Missing access token");
   }
 
-  const userId = 1; // Extract dynamically from session
+  if (!userPayload) {
+    throw new Error("Bad Request: Missing user identifier in form data");
+  }
 
-  // Extract text fields from FormData
+  // Parse user ID
+  let userId: number | string;
+  try {
+    const parsedUser = JSON.parse(userPayload);
+    userId = typeof parsedUser === "object" && parsedUser !== null ? parsedUser.id : parsedUser;
+  } catch {
+    userId = isNaN(Number(userPayload)) ? userPayload : Number(userPayload);
+  }
+
+  // 2. Extract Text Fields
   const fullName = formData.get("fullName")?.toString().trim();
   const bio = formData.get("bio")?.toString().trim() || null;
   const occupation = formData.get("occupation")?.toString().trim();
@@ -27,28 +41,43 @@ export async function updateProfileAction(prevState: UpdateProfile,formData: For
   const fitnessRoutine = formData.get("fitnessRoutine")?.toString();
   const dietary = formData.get("dietary")?.toString();
 
-  // Parse state array inputs
+  // 3. Parse JSON Arrays
   const rawInterests = formData.get("interests")?.toString() || "[]";
   const rawGallery = formData.get("gallery")?.toString() || "[]";
   const profileImageUrl = formData.get("profileImage")?.toString() || "";
 
   const interestsArray: string[] = JSON.parse(rawInterests);
-  const galleryArray: { id: string; src: string }[] = JSON.parse(rawGallery);
+  const galleryArray: { id: string; src: string; isRemoved?: boolean }[] = JSON.parse(rawGallery);
 
-  // Construct images array
-  const images: UserImage[] = [];
+  // 4. Construct Structured JS Objects for the `_user_image` Composite Type Array
+  // Note: Object field names must match Postgres composite type attributes exact names
+  type UserImageComposite = {
+    url: string;
+    is_profile: boolean;
+    is_removed: boolean;
+  };
+
+  const formattedImages: UserImageComposite[] = [];
 
   if (profileImageUrl) {
-    images.push({ url: profileImageUrl, isProfile: true });
+    formattedImages.push({
+      url: profileImageUrl,
+      is_profile: true,
+      is_removed: false,
+    });
   }
 
   galleryArray.forEach((item) => {
     if (item.src !== profileImageUrl) {
-      images.push({ url: item.src, isProfile: false });
+      formattedImages.push({
+        url: item.src,
+        is_profile: false,
+        is_removed: item.isRemoved ?? false,
+      });
     }
   });
 
-  // Update Postgres `users` Table
+  // 5. Query and Update Database Record
   const { error } = await db
     .from("users")
     .update({
@@ -59,19 +88,21 @@ export async function updateProfileAction(prevState: UpdateProfile,formData: For
       education,
       religion,
       language,
-      familyvalue: familyValue,
-      fitnessroutin: fitnessRoutine,
+      family_value: familyValue,
+      fitness_routin: fitnessRoutine,
       vegetarian: dietary === "Vegetarian",
       interests: interestsArray,
-      images: images,
+      images: formattedImages, // Passed as structured JS array objects
       completed: true,
     })
     .eq("id", userId);
 
   if (error) {
     console.error("Database Update Error:", error);
-    throw new Error("Failed to update profile.");
+    throw new Error(`Failed to update profile: ${error.message || error.details}`);
   }
 
   revalidatePath("/user");
+
+  return { success: true };
 }

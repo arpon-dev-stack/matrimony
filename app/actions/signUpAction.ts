@@ -67,8 +67,8 @@ export async function signUpAction(
         email,
         password: hashedPassword,
         gender,
-        joiningfor: joiningFor,
-        agreewith: Boolean(termsAgreed),
+        joining_for: joiningFor,
+        agree_with: Boolean(termsAgreed),
       })
 
       // name: fullName,
@@ -99,7 +99,7 @@ export async function signUpAction(
 
     const { error: updateError } = await db
       .from("users")
-      .update({ refreshtoken: refreshToken })
+      .update({ refresh_token: refreshToken })
       .eq("id", insertUser.id);
 
     if (updateError) {
@@ -133,10 +133,11 @@ export async function signUpAction(
     const user: User = {
       interests: insertUser.interests,
       vegetarian: insertUser.vegetarian,
-      fitnessroutin: insertUser.fitnessroutin,
+      fitness_routin: insertUser.fitnessroutin,
       bio: insertUser.bio,
       images: insertUser.images,
-      familyvalue: insertUser.familyvalue,
+      family_value: insertUser.familyvalue,
+      language: insertUser.language,
       id: insertUser.id,
       name: insertUser.name,
       email: insertUser.email,

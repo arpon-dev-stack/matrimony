@@ -12,6 +12,7 @@ export type AuthContextType = {
   signIn: (data: { user: User; token: string }) => void;
   signOut: () => Promise<void>; // Updated to Promise<void>
   getValidToken: () => Promise<string | undefined>;
+  updateUser: (updatedFields: Partial<any>) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -77,6 +78,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const updateUser = useCallback((updatedFields: Partial<any>) => {
+    setUser((prevUser: any) => ({
+      ...prevUser,
+      ...updatedFields,
+    }));
+  }, [])
+
   return (
     <AuthContext.Provider
       value={{
@@ -86,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signOut,
         getValidToken,
+        updateUser
       }}
     >
       {children}

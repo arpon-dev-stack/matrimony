@@ -18,7 +18,7 @@ export async function refreshTokenAction() {
     const { data: existingUser, error: fetchError } = await db
       .from("users")
       .select("*")
-      .eq("refreshtoken", oldRefreshToken)
+      .eq("refresh_token", oldRefreshToken)
       .maybeSingle();
 
     if (fetchError || !existingUser) {
@@ -35,7 +35,7 @@ export async function refreshTokenAction() {
     // 3. Update database with new refresh token
     await db
       .from("users")
-      .update({ refreshtoken: newRefreshToken })
+      .update({ refresh_token: newRefreshToken })
       .eq("id", existingUser.id);
 
     // 4. Update HTTP-only cookie

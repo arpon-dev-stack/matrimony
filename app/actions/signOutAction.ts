@@ -12,8 +12,8 @@ export async function signOutAction() {
       // 1. Clear refresh token in Supabase / Postgres DB
       await db
         .from("users")
-        .update({ refreshtoken: null })
-        .eq("refreshtoken", refreshToken);
+        .update({ refresh_token: null })
+        .eq("refresh_token", refreshToken);
     } catch (error) {
       console.error("Failed to clear refresh token from DB:", error);
     }

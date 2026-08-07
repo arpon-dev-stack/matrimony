@@ -2,14 +2,17 @@
 
 import React, { useState } from "react";
 import { CircleUser, Menu, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/_store/AuthContext";
+import { getProfileImageUrl } from "@/app/lib/getProfileImageUrl";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
+  const avatarUrl = getProfileImageUrl(user);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -66,24 +69,33 @@ const Navbar = () => {
 
         {/* Right Side Action Buttons */}
         <div className="flex items-center gap-4">
-          <div className="text-[#43474e] hover:text-[#000d22] transition-colors font-medium">
-            {user ? (
-              <Link href="/user">
-              <CircleUser />
-              </Link>
-            ) : (
+          {user ? (
+            <Link
+              href="/user"
+              className="relative border-2 border-white block h-9 w-9 shrink-0 overflow-hidden rounded-full"
+            >
+              <Image
+                src={avatarUrl}
+                alt={user.name || "User profile picture"}
+                fill
+                sizes="36px"
+                className="object-cover"
+              />
+            </Link>
+          ) : (
+            <>
               <Link href="/signin" className="flex items-center gap-2">
                 Log In
                 <CircleUser />
               </Link>
-            )}
-          </div>
-          <Link
-            href="/signup"
-            className="hidden md:flex justify-center items-center bg-gradient-to-r from-[#C5A059] to-[#B08C45] text-white h-10 px-4 rounded-lg font-medium transition-transform active:scale-95"
-          >
-            Signup
-          </Link>
+              <Link
+                href="/signup"
+                className="hidden md:flex justify-center items-center bg-gradient-to-r from-[#C5A059] to-[#B08C45] text-white h-10 px-4 rounded-lg font-medium transition-transform active:scale-95"
+              >
+                Signup
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
