@@ -9,24 +9,24 @@ export interface UserImage {
 export interface User {
   date_of_birth?: number;
   interests?: string[];
-  vegetarian?: boolean;
+  vegetarian?: string;
   fitness_routin?: string;
   bio?: string;
   images?: UserImage[];
   family_value?: string;
-  id: number;
-  language: string;
-  name: string;
-  email: string;
-  gender: Gender;
+  id?: number;
+  language?: string;
+  name?: string;
+  email?: string;
+  gender?: Gender;
   age?: number;
   location?: string;
   completed?: boolean;
   religion?: string;
   occupation?: string;
   education?: string;
-  is_verified: boolean;
-  created_at: string;
+  is_verified?: boolean;
+  created_at?: string;
 }
 
 export interface AuthUser {

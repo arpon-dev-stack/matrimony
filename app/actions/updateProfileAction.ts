@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import { revalidatePath } from "next/cache";
 import { UpdateProfile } from "../types/auth";
@@ -6,7 +6,7 @@ import { db } from "@/app/lib/bd";
 
 export async function updateProfileAction(
   prevState: UpdateProfile,
-  formData: FormData
+  formData: FormData,
 ): Promise<UpdateProfile> {
   // 1. Extract Authorization Token & User ID from FormData
   const accessToken = formData.get("accessToken")?.toString();
@@ -24,7 +24,10 @@ export async function updateProfileAction(
   let userId: number | string;
   try {
     const parsedUser = JSON.parse(userPayload);
-    userId = typeof parsedUser === "object" && parsedUser !== null ? parsedUser.id : parsedUser;
+    userId =
+      typeof parsedUser === "object" && parsedUser !== null
+        ? parsedUser.id
+        : parsedUser;
   } catch {
     userId = isNaN(Number(userPayload)) ? userPayload : Number(userPayload);
   }
@@ -39,7 +42,10 @@ export async function updateProfileAction(
   const language = formData.get("language")?.toString().trim();
   const familyValue = formData.get("familyValue")?.toString();
   const fitnessRoutine = formData.get("fitnessRoutine")?.toString();
+  const dateOfBirth = formData.get("dateOfBirth")?.toString();
   const dietary = formData.get("dietary")?.toString();
+
+  console.log(`value ${dateOfBirth} and typeof ${typeof dateOfBirth}`);
 
   // 3. Parse JSON Arrays
   const rawInterests = formData.get("interests")?.toString() || "[]";
@@ -47,7 +53,8 @@ export async function updateProfileAction(
   const profileImageUrl = formData.get("profileImage")?.toString() || "";
 
   const interestsArray: string[] = JSON.parse(rawInterests);
-  const galleryArray: { id: string; src: string; isRemoved?: boolean }[] = JSON.parse(rawGallery);
+  const galleryArray: { id: string; src: string; isRemoved?: boolean }[] =
+    JSON.parse(rawGallery);
 
   // 4. Construct Structured JS Objects for the `_user_image` Composite Type Array
   // Note: Object field names must match Postgres composite type attributes exact names
@@ -88,6 +95,7 @@ export async function updateProfileAction(
       education,
       religion,
       language,
+      date_of_birth: dateOfBirth,
       family_value: familyValue,
       fitness_routin: fitnessRoutine,
       vegetarian: dietary === "Vegetarian",
@@ -99,7 +107,9 @@ export async function updateProfileAction(
 
   if (error) {
     console.error("Database Update Error:", error);
-    throw new Error(`Failed to update profile: ${error.message || error.details}`);
+    throw new Error(
+      `Failed to update profile: ${error.message || error.details}`,
+    );
   }
 
   revalidatePath("/user");

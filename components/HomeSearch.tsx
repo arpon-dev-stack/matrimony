@@ -17,7 +17,7 @@ const HomeSearch = () => {
     location: searchParams.get("location") || "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams);
 
@@ -37,7 +37,7 @@ const HomeSearch = () => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white/95 backdrop-blur-md p-1 rounded-xl shadow-[0_12px_32px_-8px_rgba(0,35,73,0.08)] grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
+      className="bg-white/95 backdrop-blur-md p-3 rounded-lg shadow-[0_12px_32px_-8px_rgba(0,35,73,0.08)] grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
     >
       <div className="space-y-2">
         <label className="text-xs uppercase font-bold tracking-wider text-[#43474e]">
@@ -120,7 +120,7 @@ const HomeSearch = () => {
 
       <button
         type="submit"
-        className="bg-gradient-to-r from-[#C5A059] to-[#B08C45] text-white h-[42px] rounded-lg font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+        className="bg-gradient-to-r from-[#C5A059] to-[#B08C45] text-white h-[42px] rounded-sm font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
       >
         <Search className="h-4 w-4" />
         Search

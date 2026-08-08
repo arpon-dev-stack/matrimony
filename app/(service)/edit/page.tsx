@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
+import Image from "next/image";
 import { CldUploadWidget } from "next-cloudinary";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -160,10 +161,11 @@ export const EditProfile: React.FC = () => {
             <div className="relative group shrink-0">
               <div className="w-48 h-48 rounded-full border-4 border-white shadow-xl overflow-hidden bg-[#e4e2e2] flex items-center justify-center">
                 {profileImage ? (
-                  <img
-                    className="w-full h-full object-cover"
+                  <Image
+                    className="object-cover"
                     src={profileImage}
                     alt="Profile photo"
+                    sizes="192px"
                   />
                 ) : (
                   <span className="text-gray-400 font-medium">No Image</span>
@@ -256,8 +258,8 @@ export const EditProfile: React.FC = () => {
                 </label>
                 <input
                   type="date"
-                  id="date_of_birth"
-                  name="date_of_birth"
+                  id="dateOfBirth"
+                  name="dateOfBirth"
                   className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none transition-colors text-base"
                 />
               </div>
