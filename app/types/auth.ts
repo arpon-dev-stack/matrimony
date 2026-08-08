@@ -7,6 +7,7 @@ export interface UserImage {
 }
 
 export interface User {
+  date_of_birth?: number;
   interests?: string[];
   vegetarian?: boolean;
   fitness_routin?: string;

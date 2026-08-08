@@ -24,7 +24,7 @@ export default function SignupForm() {
   const {signIn} = useAuth();
   const [state, formAction, isPending] = useActionState<AuthFormState, FormData>(
     signUpAction,
-    null
+    {}
   );
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
@@ -37,7 +37,7 @@ export default function SignupForm() {
     }, [state, signIn, router]);
 
   // 1. Create a custom submit handler to prevent default behavior
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // Client-side validation before triggering action
@@ -61,7 +61,7 @@ export default function SignupForm() {
       {/* Left Visual Panel */}
       <section className="hidden md:flex md:w-1/2 lg:w-3/5 relative h-screen overflow-hidden">
         <div
-          className="absolute inset-0 z-0 scale-105 transition-transform duration-[10000ms] hover:scale-100 h-full w-full bg-cover bg-center"
+          className="absolute inset-0 z-0 scale-105 transition-transform duration-10000 hover:scale-100 h-full w-full bg-cover bg-center"
           style={{
             backgroundImage: `url("https://lh3.googleusercontent.com/aida-public/AB6AXuBprOksDn6kNuaUYnc7Xvqlo89va8ELqU0ivmlkNlS-dSyaSVzKDL_yqB95d0Y19rz3J8JAuxHZ8DrjuwAUgAiJW8OdCQZsqcUbxgAve6rfbrpZvgBTABfZAZJ-y03utCWQLLa6kehQjMtQOdpud4hfU4kUmMoZ_ecbbdW5L-zHDKk_djJ4S73My-EW6ZWrjaj5c8o9KkQB8WOpSEJnbzTJzu6jpJZ6J7teLnRSS_XNUa8EBpSX3Ddg")`,
           }}
@@ -86,7 +86,7 @@ export default function SignupForm() {
 
       {/* Right Form Panel */}
       <section className="flex-1 flex items-center justify-center p-6 md:p-16 bg-[#fbf9f8] z-30 overflow-y-auto">
-        <div className="w-full max-w-[480px]">
+        <div className="w-full max-w-120">
           <div className="md:hidden mb-6 flex items-center gap-2">
             <Coins className="text-[#000d22] w-8 h-8" />
             <h1 className="font-serif text-[32px] font-bold text-[#000d22]">

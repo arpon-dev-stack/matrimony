@@ -47,21 +47,36 @@ export const EditProfile: React.FC = () => {
   const [profileImage, setProfileImage] = useState<string>(initialProfileImg);
   const [fullName, setFullName] = useState<string>(activeUser?.name || "");
   const [bio, setBio] = useState<string>(activeUser?.bio || "");
-  const [occupation, setOccupation] = useState<string>(activeUser?.occupation || "");
+  const [occupation, setOccupation] = useState<string>(
+    activeUser?.occupation || "",
+  );
   const [location, setLocation] = useState<string>(activeUser?.location || "");
-  const [education, setEducation] = useState<string>(activeUser?.education || "");
+  const [education, setEducation] = useState<string>(
+    activeUser?.education || "",
+  );
   const [religion, setReligion] = useState<string>(activeUser?.religion || "");
   const [language, setLanguage] = useState<string>(activeUser?.language || "");
-  const [familyValue, setFamilyValue] = useState<string>(activeUser?.family_value || "Modern");
-  const [fitnessRoutine, setFitnessRoutine] = useState<string>(activeUser?.fitness_routin || "3-4 times a week");
-  const [dietary, setDietary] = useState<string>(activeUser?.vegetarian ? "Vegetarian" : "Non-Vegetarian");
+  const [familyValue, setFamilyValue] = useState<string>(
+    activeUser?.family_value || "Modern",
+  );
+  const [fitnessRoutine, setFitnessRoutine] = useState<string>(
+    activeUser?.fitness_routin || "3-4 times a week",
+  );
+  const [dietary, setDietary] = useState<string>(
+    activeUser?.vegetarian ? "Vegetarian" : "Non-Vegetarian",
+  );
 
-  const [interests, setInterests] = useState<string[]>(activeUser?.interests || []);
+  const [interests, setInterests] = useState<string[]>(
+    activeUser?.interests || [],
+  );
   const [newInterest, setNewInterest] = useState("");
   const [isAddingInterest, setIsAddingInterest] = useState(false);
-  
+
   // Gallery state now retains the `is_removed` attribute
-  const [gallery, setGallery] = useState<{ id: string; src: string; is_removed: boolean }[]>(initialGallery);
+  const [gallery, setGallery] =
+    useState<{ id: string; src: string; is_removed: boolean }[]>(
+      initialGallery,
+    );
 
   const handleRemoveInterest = (tag: string) => {
     setInterests(interests.filter((i) => i !== tag));
@@ -110,9 +125,9 @@ export const EditProfile: React.FC = () => {
             education,
             religion,
             language,
-            familyvalue: familyValue,
-            fitnessroutin: fitnessRoutine,
-            vegetarian: dietary === "Vegetarian",
+            family_value: familyValue,
+            fitness_routin: fitnessRoutine,
+            vegetarian: dietary,
             interests,
             images: updatedImages,
           });
@@ -133,7 +148,11 @@ export const EditProfile: React.FC = () => {
           <input type="hidden" name="id" value={user?.id} />
           <input type="hidden" name="accessToken" value={accessToken} />
           <input type="hidden" name="profileImage" value={profileImage} />
-          <input type="hidden" name="interests" value={JSON.stringify(interests)} />
+          <input
+            type="hidden"
+            name="interests"
+            value={JSON.stringify(interests)}
+          />
           <input type="hidden" name="gallery" value={JSON.stringify(gallery)} />
 
           {/* Profile Photo & Identity Section */}
@@ -186,13 +205,14 @@ export const EditProfile: React.FC = () => {
                   className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none transition-colors font-serif text-2xl font-semibold text-[#000d22]"
                 />
               </div>
-
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
                     About You (Bio)
                   </label>
-                  <span className="text-xs text-[#43474e]">{bio.length}/500</span>
+                  <span className="text-xs text-[#43474e]">
+                    {bio.length}/500
+                  </span>
                 </div>
                 <textarea
                   name="bio"
@@ -204,7 +224,6 @@ export const EditProfile: React.FC = () => {
                   className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none transition-colors text-base resize-y min-h-[90px]"
                 />
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
@@ -231,6 +250,17 @@ export const EditProfile: React.FC = () => {
                   />
                 </div>
               </div>
+              <div className="space-x-4">
+                <label htmlFor="date_of_birth" className="font-medium">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  id="date_of_birth"
+                  name="date_of_birth"
+                  className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none transition-colors text-base"
+                />
+              </div>
             </div>
           </section>
 
@@ -241,7 +271,9 @@ export const EditProfile: React.FC = () => {
                 <h2 className="font-serif text-2xl font-semibold text-[#000d22]">
                   Moments &amp; Journeys
                 </h2>
-                <p className="text-sm text-[#43474e]">Upload additional gallery pictures</p>
+                <p className="text-sm text-[#43474e]">
+                  Upload additional gallery pictures
+                </p>
               </div>
 
               <CldUploadWidget
@@ -428,10 +460,16 @@ export const EditProfile: React.FC = () => {
                     onChange={(e) => setFitnessRoutine(e.target.value)}
                     className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none appearance-none"
                   >
-                    <option value="Daily / High Intensity">Daily / High Intensity</option>
+                    <option value="Daily / High Intensity">
+                      Daily / High Intensity
+                    </option>
                     <option value="3-4 times a week">3-4 times a week</option>
-                    <option value="Occasional / Weekend">Occasional / Weekend</option>
-                    <option value="Yoga & Meditation focus">Yoga &amp; Meditation focus</option>
+                    <option value="Occasional / Weekend">
+                      Occasional / Weekend
+                    </option>
+                    <option value="Yoga & Meditation focus">
+                      Yoga &amp; Meditation focus
+                    </option>
                   </select>
                 </div>
               </div>
@@ -500,7 +538,9 @@ export const EditProfile: React.FC = () => {
                   <option value="Modern">Modern</option>
                   <option value="Traditional">Traditional</option>
                   <option value="Liberal">Liberal</option>
-                  <option value="Conservative Modern">Conservative Modern</option>
+                  <option value="Conservative Modern">
+                    Conservative Modern
+                  </option>
                 </select>
               </div>
             </div>
@@ -509,7 +549,8 @@ export const EditProfile: React.FC = () => {
               <div className="flex items-center gap-3 p-4 bg-[#002349]/10 rounded-lg border border-[#002349]/20">
                 <Info className="w-5 h-5 text-[#002349] shrink-0" />
                 <p className="text-sm text-[#2c476f]">
-                  Values and background information help us find your most compatible matches.
+                  Values and background information help us find your most
+                  compatible matches.
                 </p>
               </div>
             </div>

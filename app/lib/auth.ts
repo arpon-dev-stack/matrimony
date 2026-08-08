@@ -30,7 +30,7 @@ export async function verifySession(token: string) {
     const { payload } = await jwtVerify(token, secretKey);
     return payload;
   } catch (error) {
-    return null;
+    return error;
   }
 }
 
