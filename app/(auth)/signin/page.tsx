@@ -13,6 +13,8 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [state, formAction, isPending] = useActionState(signInAction, null);
 
+  console.log(state)
+
   useEffect(() => {
     let hasHandleAuth = false
 

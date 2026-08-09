@@ -13,7 +13,7 @@ export default function ProtectedRoute({
   children,
   fallback,
 }: ProtectedRouteProps) {
-  const { user, accessToken, isLoading, getValidToken } = useAuth();
+  const { id, token, isLoading, getValidToken } = useAuth();
   const router = useRouter();
   const [isVerifying, setIsVerifying] = useState(true);
 
@@ -24,7 +24,7 @@ export default function ProtectedRoute({
       if (isLoading) return;
 
       // If missing in-memory token/user, try silent refresh
-      if (!accessToken || !user) {
+      if (!token || !id) {
         const token = await getValidToken();
         if (!token && isMounted) {
           router.replace("/signin");
@@ -42,13 +42,13 @@ export default function ProtectedRoute({
     return () => {
       isMounted = false;
     };
-  }, [accessToken, user, isLoading, getValidToken, router]);
+  }, [token, id, isLoading, getValidToken, router]);
 
   if (isLoading || isVerifying) {
     return fallback ? <>{fallback}</> : <div>Loading...</div>;
   }
 
-  if (!user || !accessToken) {
+  if (!id || !token) {
     return null;
   }
 

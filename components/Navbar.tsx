@@ -11,8 +11,8 @@ import { getProfileImageUrl } from "@/app/lib/getProfileImageUrl";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const { user } = useAuth();
-  const avatarUrl = getProfileImageUrl(user);
+  const { id } = useAuth();
+  const avatarUrl = getProfileImageUrl('');
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -69,14 +69,14 @@ const Navbar = () => {
 
         {/* Right Side Action Buttons */}
         <div className="flex items-center gap-4">
-          {user ? (
+          {id ? (
             <Link
               href="/user"
               className="relative border-2 border-white block h-9 w-9 shrink-0 overflow-hidden rounded-full"
             >
               <Image
                 src={avatarUrl}
-                alt={user.name || "User profile picture"}
+                alt={"User profile picture"}
                 fill
                 sizes="36px"
                 className="object-cover"

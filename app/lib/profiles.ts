@@ -10,6 +10,7 @@ export interface ImageItem {
 }
 
 export interface UserRow {
+  date_of_birth: string;
   id: number;
   name: string;
   joining_for: string;
@@ -152,7 +153,7 @@ export async function getFilteredProfiles(params: {
   return (data as UserRow[]).map(mapUserToProfile);
 }
 
-export async function getProfile(id: number | null): Promise<{ user: UserRow | null }> {
+export async function getProfile(id: number): Promise<{ user: UserRow } | null> {
   const { data: user, error } = await db
     .from("users")
     .select("*")
@@ -161,7 +162,7 @@ export async function getProfile(id: number | null): Promise<{ user: UserRow | n
 
   if (error) {
     console.error(`Error fetching profile with id ${id}:`, error.message);
-    return { user: null };
+    throw new Error(error.message)
   }
 
   return { user };

@@ -1,6 +1,6 @@
-'use client';
 
-export function getAgeInYears(dateString: string): string {
+
+export async function getAgeInYears(dateString: string): Promise<string> {
   const targetDate = new Date(dateString);
   const currentDate = new Date();
 
