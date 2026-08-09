@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, {useEffect, useState} from "react";
 import { useAuth } from "@/app/_store/AuthContext";
 import Link from "next/link";
-import { User, UserImage } from "@/app/types/auth";
 import { getAgeInYears } from "@/app/lib/getAgeInYear";
+import { getProfile } from "@/app/lib/profiles";
+import { UserRow } from "@/app/lib/profiles";
 import {
   CheckCircle2,
   Calendar,
@@ -23,10 +24,31 @@ import {
 
 
 export default function UserProfile() {
-  const { user, signOut } = useAuth() as { user: User | null; signOut: () => void };
+  const { id, signOut } = useAuth();
+  const [userData, setUserData] = useState()
 
-  console.log(user);
-  if (!user) {
+  useEffect(() => {
+
+    let isCancled = false;
+
+    async function findProfile(id: number | null) {
+
+      const profile = await getProfile(id)
+
+      if(!isCancled) {
+        setUserData(profile);
+      }
+    }
+
+    findProfile(id);
+
+    return () => {
+      isCancled = true;
+    }
+
+  }, [])
+
+  if (!userData) {
     return (
       <div className="min-h-screen bg-[#fbf9f8] flex items-center justify-center text-gray-500 font-sans">
         Loading profile data...
@@ -35,7 +57,7 @@ export default function UserProfile() {
   }
 
   // Filter out any logically deleted images
-  const activeImages = user.images?.filter((img) => !img.is_removed) || [];
+  const activeImages = userData.images?.filter((img) => !img.is_removed) || [];
 
   // Identify main profile image or fall back to a placeholder
   const profileImage =
@@ -47,15 +69,15 @@ export default function UserProfile() {
   const galleryImages = activeImages.filter((img) => img.url !== profileImage);
 
   // Normalize bio to handle array of strings or single string
-  const bioParagraphs = Array.isArray(user.bio)
-    ? user.bio
-    : user.bio
-    ? [user.bio]
+  const bioParagraphs = Array.isArray(userData.bio)
+    ? userData.bio
+    : userData.bio
+    ? [userData.bio]
     : [];
 
   // Formatting registration date
-  const joinedDate = user.created_at
-    ? new Date(user.created_at).toLocaleDateString("en-US", {
+  const joinedDate = userData.created_at
+    ? new Date(userData.created_at).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       })
@@ -71,11 +93,11 @@ export default function UserProfile() {
             <div className="aspect-[4/5] overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
               <img
                 src={profileImage}
-                alt={user.name || "User profile image"}
+                alt={userData.name || "userData profile image"}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>
-            {user.is_verified && (
+            {userData.is_verified && (
               <div className="absolute top-6 right-6">
                 <span className="flex items-center gap-1.5 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full border border-[#C5A059]/30 shadow-sm text-xs font-semibold uppercase tracking-wider text-[#775a19]">
                   <CheckCircle2 className="w-4 h-4 text-[#775a19]" />
@@ -85,38 +107,38 @@ export default function UserProfile() {
             )}
           </div>
 
-          {/* User Essential Info */}
+          {/* userData Essential Info */}
           <div className="lg:col-span-6 xl:col-span-7 pt-2 flex flex-col justify-between h-full">
             <div>
               <div className="mb-6">
                 <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#000d22] mb-3 capitalize">
-                  {user.name || "Anonymous User"}
+                  {userData.name || "Anonymous userData"}
                 </h1>
                 
                 <div className="flex flex-wrap items-center gap-4 text-gray-600 font-medium text-sm">
-                  {user.date_of_birth && (
+                  {userData.date_of_birth && (
                     <span className="flex items-center gap-1.5">
                       <Calendar className="w-4 h-4 text-gray-400" />
-                      {getAgeInYears(user.date_of_birth)}
+                      {getAgeInYears(userData.date_of_birth)}
                     </span>
                   )}
 
-                  {user.gender && (
+                  {userData.gender && (
                     <>
                       <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                       <span className="flex items-center gap-1.5 capitalize">
                         <UserCheck className="w-4 h-4 text-gray-400" />
-                        {user.gender}
+                        {userData.gender}
                       </span>
                     </>
                   )}
 
-                  {user.location && (
+                  {userData.location && (
                     <>
                       <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                       <span className="flex items-center gap-1.5">
                         <MapPin className="w-4 h-4 text-gray-400" />
-                        {user.location}
+                        {userData.location}
                       </span>
                     </>
                   )}
@@ -152,7 +174,7 @@ export default function UserProfile() {
                       Email
                     </p>
                     <p className="font-semibold text-[#000d22] text-sm break-all">
-                      {user.email || "Not Provided"}
+                      {userData.email || "Not Provided"}
                     </p>
                   </div>
                 </div>
@@ -166,7 +188,7 @@ export default function UserProfile() {
                       Occupation
                     </p>
                     <p className="font-semibold text-[#000d22] text-sm capitalize">
-                      {user.occupation || "Not Provided"}
+                      {userData.occupation || "Not Provided"}
                     </p>
                   </div>
                 </div>
@@ -180,7 +202,7 @@ export default function UserProfile() {
                       Education
                     </p>
                     <p className="font-semibold text-[#000d22] text-sm capitalize">
-                      {user.education || "Not Provided"}
+                      {userData.education || "Not Provided"}
                     </p>
                   </div>
                 </div>
@@ -194,7 +216,7 @@ export default function UserProfile() {
                       Religion
                     </p>
                     <p className="font-semibold text-[#000d22] text-sm capitalize">
-                      {user.religion || "Not Provided"}
+                      {userData.religion || "Not Provided"}
                     </p>
                   </div>
                 </div>
@@ -244,7 +266,7 @@ export default function UserProfile() {
                     >
                       <img
                         src={img.url}
-                        alt={`User picture ${idx + 1}`}
+                        alt={`userData picture ${idx + 1}`}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer"
                       />
                     </div>
@@ -262,14 +284,14 @@ export default function UserProfile() {
               </h3>
 
               {/* Interests Tags */}
-              {user.interests && user.interests.length > 0 && (
+              {userData.interests && userData.interests.length > 0 && (
                 <div>
                   <p className="text-xs uppercase font-semibold text-gray-500 tracking-wider mb-3 flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5" />
                     Interests
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {user.interests.map((interest, i) => (
+                    {userData.interests.map((interest, i) => (
                       <span
                         key={i}
                         className="bg-[#fbf9f8] text-[#000d22] px-3 py-1 rounded-full text-xs font-medium border border-gray-200 capitalize"
@@ -288,7 +310,7 @@ export default function UserProfile() {
                   Dietary Choice
                 </p>
                 <span className="inline-block bg-gray-50 text-[#000d22] px-3 py-1 rounded-md text-sm font-medium border border-gray-200">
-                  {user.vegetarian ? "Vegetarian" : "Non-Vegetarian"}
+                  {userData.vegetarian ? "Vegetarian" : "Non-Vegetarian"}
                 </span>
               </div>
 
@@ -298,12 +320,12 @@ export default function UserProfile() {
                   <span className="text-gray-500">Profile Status</span>
                   <span
                     className={`font-semibold px-2 py-0.5 rounded-full ${
-                      user.completed
+                      userData.completed
                         ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                         : "bg-amber-50 text-amber-700 border border-amber-200"
                     }`}
                   >
-                    {user.completed ? "Completed" : "Incomplete"}
+                    {userData.completed ? "Completed" : "Incomplete"}
                   </span>
                 </div>
               </div>

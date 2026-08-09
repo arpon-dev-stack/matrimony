@@ -1,6 +1,6 @@
 "use client";
 
-import React, {startTransition, useState, useEffect, useActionState, useRef } from "react";
+import React, {useState, useEffect, useActionState } from "react";
 import { Mail, Lock, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/app/_store/AuthContext"; // Import your AuthContext hook
@@ -8,30 +8,20 @@ import { signInAction } from "@/app/actions/signInAction";
 import { useRouter } from "next/navigation";
 
 export default function SignInForm() {
-  const hasHandleAuth = useRef<boolean>(false)
   const router = useRouter();
   const { signIn} = useAuth(); // Destructure signIn method from context
   const [showPassword, setShowPassword] = useState(false);
   const [state, formAction, isPending] = useActionState(signInAction, null);
 
   useEffect(() => {
-    if (state?.user && !hasHandleAuth.current) {
-      hasHandleAuth.current = true
-      signIn(state); // Stores full profile (id, email, joiningfor, location, etc.)
-      router.push('/user'); // Redirects client-side after state update
+    let hasHandleAuth = false
+
+    if (state?.success && !hasHandleAuth) {
+      hasHandleAuth = true
+      signIn({id:state.id, token: state.token});
+      router.push('/user');
     }
   }, [state, signIn, router]);
-
-  // Simulated successful API response data
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.currentTarget);
-
-    startTransition(() => {
-      formAction(formData);
-    });
-  };
 
   return (
     <main className="min-h-screen flex flex-col md:flex-row overflow-hidden bg-[#fbf9f8] font-sans text-[#1b1c1c]">
@@ -84,7 +74,7 @@ export default function SignInForm() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form action={formAction} className="space-y-6">
             {/* Email Field */}
             <div className="space-y-2">
               <label

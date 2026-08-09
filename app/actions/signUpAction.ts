@@ -2,14 +2,14 @@
 
 import { generateTokens } from "../lib/tokenGenerator";
 import { db } from "../lib/bd";
-import { AuthFormState, User } from "../types/auth";
 import { hashPassword } from "../lib/auth";
 import { cookies } from "next/headers";
+import { ActionState } from "./signInAction";
 
 export async function signUpAction(
-  prevState: AuthFormState | null,
+  prevState: ActionState | null,
   formData: FormData,
-): Promise<AuthFormState> {
+): Promise<ActionState> {
   const fullName = formData.get("fullName")?.toString().trim();
   const email = formData.get("email")?.toString().trim().toLowerCase();
   const password = formData.get("password")?.toString();
@@ -71,22 +71,7 @@ export async function signUpAction(
         agree_with: Boolean(termsAgreed),
       })
 
-      // name: fullName,
-      // bio,
-      // occupation,
-      // location,
-      // education,
-      // religion,
-      // language,
-      // familyvalue: familyValue,
-      // fitnessroutin: fitnessRoutine,
-      // vegetarian: dietary === "Vegetarian",
-      // interests: interestsArray,
-      // images: images,
-      // completed: true,
-      // id
-
-      .select("*")
+      .select("id")
       .single();
 
     if (insertError || !insertUser) {
@@ -95,7 +80,7 @@ export async function signUpAction(
     }
 
     // 5. Create & set session cookie
-    const { accessToken, refreshToken } = generateTokens(insertUser.id);
+    const { accessToken: token, refreshToken } = generateTokens(insertUser.id);
 
     const { error: updateError } = await db
       .from("users")
@@ -115,44 +100,8 @@ export async function signUpAction(
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
-    // name: fullName,
-    // bio,
-    // occupation,
-    // location,
-    // education,
-    // religion,
-    // language,
-    // familyvalue: familyValue,
-    // fitnessroutin: fitnessRoutine,
-    // vegetarian: dietary === "Vegetarian",
-    // interests: interestsArray,
-    // images: images,
-    // completed: true,
-    // id
-
-    const user: User = {
-      interests: insertUser.interests,
-      vegetarian: insertUser.vegetarian,
-      fitness_routin: insertUser.fitnessroutin,
-      bio: insertUser.bio,
-      images: insertUser.images,
-      family_value: insertUser.familyvalue,
-      language: insertUser.language,
-      id: insertUser.id,
-      name: insertUser.name,
-      email: insertUser.email,
-      gender: insertUser.gender,
-      age: insertUser.age,
-      location: insertUser.location,
-      completed: insertUser.completed,
-      religion: insertUser.religion,
-      occupation: insertUser.occupation,
-      education: insertUser.education,
-      is_verified: insertUser.is_verified,
-      created_at: insertUser.created_at,
-    };
-
-    return { success: true, token: accessToken, user };
+    const id: number = insertUser.id
+    return { success: true, token, id };
   } catch (error) {
     console.error("SignUp Error:", error);
     return { error: "An unexpected error occurred. Please try again." };

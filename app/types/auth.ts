@@ -14,7 +14,7 @@ export interface User {
   bio?: string;
   images?: UserImage[];
   family_value?: string;
-  id?: number;
+  id: number;
   language?: string;
   name?: string;
   email?: string;

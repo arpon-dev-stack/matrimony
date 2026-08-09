@@ -1,16 +1,18 @@
 "use server";
 
-import { User } from "../types/auth";
 import { generateTokens } from "../lib/tokenGenerator";
 import { verifyPassword } from "../lib/auth";
 import { cookies } from "next/headers";
 import { db } from "../lib/bd";
-import { AuthUser } from "../types/auth";
+
+export type ActionState =
+  | { success: true; token: string; id: number; error?: never }
+  | { error: string; success?: never; token?: never; id?: never };
 
 export async function signInAction(
-  prevState: AuthUser | null,
+  prevState: ActionState | null,
   formData: FormData,
-): Promise<AuthUser> {
+): Promise<ActionState> {
   const email = formData.get("email")?.toString().trim().toLowerCase();
   const password = formData.get("password")?.toString();
 
@@ -22,7 +24,7 @@ export async function signInAction(
     // Select password for verification alongside user profile fields
     const { data: existingUser, error: fetchError } = await db
       .from("users")
-      .select("*")
+      .select("id, password")
       .eq("email", email)
       .maybeSingle();
 
@@ -60,29 +62,9 @@ export async function signInAction(
     });
 
     // Safely structure user object matching User
-    const user: User = {
-      date_of_birth: existingUser.date_of_birth,
-      interests: existingUser.interests,
-      vegetarian: existingUser.vegetarian,
-      fitness_routin: existingUser.fitnessroutin,
-      bio: existingUser.bio,
-      images: existingUser.images,
-      family_value: existingUser.familyValue,
-      id: existingUser.id,
-      language: existingUser.language,
-      name: existingUser.name,
-      email: existingUser.email,
-      gender: existingUser.gender,
-      location: existingUser.location,
-      completed: existingUser.completed,
-      religion: existingUser.religion,
-      occupation: existingUser.occupation,
-      education: existingUser.education,
-      is_verified: existingUser.is_verified,
-      created_at: existingUser.created_at,
-    };
-    
-    return { success: true, token: accessToken, user };
+    const id: number = existingUser.id;
+
+    return { success: true, token: accessToken, id };
   } catch (error) {
     console.error("SignIn Error:", error);
     return { error: "An unexpected error occurred. Please try again." };

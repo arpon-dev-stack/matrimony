@@ -17,44 +17,23 @@ import {
   Coins,
 } from 'lucide-react';
 import { signUpAction } from '@/app/actions/signUpAction';
-import { AuthFormState} from '@/app/types/auth';
 
 export default function SignupForm() {
   const router = useRouter();
   const {signIn} = useAuth();
-  const [state, formAction, isPending] = useActionState<AuthFormState, FormData>(
+  const [state, formAction, isPending] = useActionState(
     signUpAction,
-    {}
+    null
   );
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
 
   useEffect(() => {
-      if (state?.user) {
-        signIn(state); // Stores full profile (id, email, joiningfor, location, etc.)
+      if (state?.id) {
+        signIn({id: state.id, token: state.token}); // Stores full profile (id, email, joiningfor, location, etc.)
         router.push('/user'); // Redirects client-side after state update
       }
     }, [state, signIn, router]);
-
-  // 1. Create a custom submit handler to prevent default behavior
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    // Client-side validation before triggering action
-    const formData = new FormData(e.currentTarget);
-    const password = formData.get('password');
-    const confirmPassword = formData.get('confirmPassword');
-
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    // React 19 / Next.js 15: pass the Form Event directly inside startTransition
-    React.startTransition(() => {
-      formAction(formData);
-    });
-  };
 
   return (
     <main className="min-h-screen flex flex-col md:flex-row overflow-hidden bg-[#fbf9f8] font-sans text-[#1b1c1c]">
@@ -111,7 +90,7 @@ export default function SignupForm() {
           )}
 
           {/* 2. Replace action={formAction} with onSubmit={handleSubmit} */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form action={formAction} className="space-y-6">
             {/* Full Name */}
             <div className="relative group">
               <label

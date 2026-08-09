@@ -1,5 +1,6 @@
 // lib/profiles.ts
 
+import { User } from "../types/auth";
 import { db } from "./bd";
 
 export interface ImageItem {
@@ -151,7 +152,7 @@ export async function getFilteredProfiles(params: {
   return (data as UserRow[]).map(mapUserToProfile);
 }
 
-export async function getProfile(id: number): Promise<{ user: UserRow | null }> {
+export async function getProfile(id: number | null): Promise<{ user: UserRow | null }> {
   const { data: user, error } = await db
     .from("users")
     .select("*")

@@ -3,7 +3,6 @@
 import { cookies } from "next/headers";
 import { db } from "../lib/bd";
 import { generateTokens } from "../lib/tokenGenerator";
-import { User } from "../types/auth";
 
 export async function refreshTokenAction() {
   const cookieStore = await cookies();
@@ -17,7 +16,7 @@ export async function refreshTokenAction() {
     // 1. Fetch user by old refresh token
     const { data: existingUser, error: fetchError } = await db
       .from("users")
-      .select("*")
+      .select("id")
       .eq("refresh_token", oldRefreshToken)
       .maybeSingle();
 
@@ -28,7 +27,7 @@ export async function refreshTokenAction() {
     }
 
     // 2. Generate new token pair (Rotation)
-    const { accessToken, refreshToken: newRefreshToken } = generateTokens(
+    const { accessToken: token, refreshToken: newRefreshToken } = generateTokens(
       existingUser.id,
     );
 
@@ -47,29 +46,9 @@ export async function refreshTokenAction() {
       maxAge: 60 * 60 * 24 * 7,
     });
 
-    const user: User = {
-      interests: existingUser.interests,
-      vegetarian: existingUser.vegetarian,
-      fitness_routin: existingUser.fitnessroutin,
-      bio: existingUser.bio,
-      images: existingUser.images,
-      language: existingUser.language,
-      family_value: existingUser.familyValue,
-      id: existingUser.id,
-      name: existingUser.name,
-      email: existingUser.email,
-      gender: existingUser.gender,
-      age: existingUser.age,
-      location: existingUser.location,
-      completed: existingUser.completed,
-      religion: existingUser.religion,
-      occupation: existingUser.occupation,
-      education: existingUser.education,
-      is_verified: existingUser.is_verified,
-      created_at: existingUser.created_at,
-    };
+    const id: number = existingUser.id;
 
-    return { success: true, token: accessToken, user };
+    return { success: true, token, id };
   } catch (error) {
     console.error("Refresh Token Error:", error);
     return { error: "Session restoration failed" };
