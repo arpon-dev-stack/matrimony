@@ -61,6 +61,7 @@ export async function signInAction(
 
     // Safely structure user object matching User
     const user: User = {
+      date_of_birth: existingUser.date_of_birth,
       interests: existingUser.interests,
       vegetarian: existingUser.vegetarian,
       fitness_routin: existingUser.fitnessroutin,
@@ -72,7 +73,6 @@ export async function signInAction(
       name: existingUser.name,
       email: existingUser.email,
       gender: existingUser.gender,
-      age: existingUser.age,
       location: existingUser.location,
       completed: existingUser.completed,
       religion: existingUser.religion,
@@ -81,7 +81,7 @@ export async function signInAction(
       is_verified: existingUser.is_verified,
       created_at: existingUser.created_at,
     };
-
+    
     return { success: true, token: accessToken, user };
   } catch (error) {
     console.error("SignIn Error:", error);

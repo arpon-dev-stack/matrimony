@@ -6,6 +6,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 const HomeSearch = () => {
   const searchParams = useSearchParams();
+  console.log(searchParams)
   const pathname = usePathname();
   const { push } = useRouter();
 
@@ -20,6 +21,8 @@ const HomeSearch = () => {
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams);
+
+    console.log(params);
 
     // Set or remove parameters based on values
     Object.entries(searchFilter).forEach(([key, value]) => {

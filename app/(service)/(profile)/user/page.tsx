@@ -4,6 +4,7 @@ import React from "react";
 import { useAuth } from "@/app/_store/AuthContext";
 import Link from "next/link";
 import { User, UserImage } from "@/app/types/auth";
+import { getAgeInYears } from "@/app/lib/getAgeInYear";
 import {
   CheckCircle2,
   Calendar,
@@ -93,10 +94,10 @@ export default function UserProfile() {
                 </h1>
                 
                 <div className="flex flex-wrap items-center gap-4 text-gray-600 font-medium text-sm">
-                  {user.age && (
+                  {user.date_of_birth && (
                     <span className="flex items-center gap-1.5">
                       <Calendar className="w-4 h-4 text-gray-400" />
-                      {user.age} Years Old
+                      {getAgeInYears(user.date_of_birth)}
                     </span>
                   )}
 

@@ -16,9 +16,9 @@ export default function RootLayout({
   return (
       <>
         <SimpleHeader/>
-        {/* <ProtectedRoute fallback={<LoadingSpinner message="Verifying session..."/>}> */}
+        <ProtectedRoute fallback={<LoadingSpinner message="Verifying session..."/>}>
         {children}
-        {/* </ProtectedRoute> */}
+        </ProtectedRoute>
       </>
   );
 }

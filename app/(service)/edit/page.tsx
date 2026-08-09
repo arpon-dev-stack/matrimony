@@ -46,6 +46,7 @@ export const EditProfile: React.FC = () => {
     }));
 
   const [profileImage, setProfileImage] = useState<string>(initialProfileImg);
+  const [dateOfBirth, setDateOfBirth] = useState<string>(activeUser?.date_of_birth || "");
   const [fullName, setFullName] = useState<string>(activeUser?.name || "");
   const [bio, setBio] = useState<string>(activeUser?.bio || "");
   const [occupation, setOccupation] = useState<string>(
@@ -131,6 +132,7 @@ export const EditProfile: React.FC = () => {
             vegetarian: dietary,
             interests,
             images: updatedImages,
+            date_of_birth: dateOfBirth
           });
 
           router.push("/user");
@@ -165,7 +167,8 @@ export const EditProfile: React.FC = () => {
                     className="object-cover"
                     src={profileImage}
                     alt="Profile photo"
-                    sizes="192px"
+                    width={192}
+                    height={192}
                   />
                 ) : (
                   <span className="text-gray-400 font-medium">No Image</span>
@@ -258,6 +261,8 @@ export const EditProfile: React.FC = () => {
                 </label>
                 <input
                   type="date"
+                  onChange={e => setDateOfBirth(e.target.value)}
+                  value={dateOfBirth}
                   id="dateOfBirth"
                   name="dateOfBirth"
                   className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none transition-colors text-base"

@@ -7,7 +7,7 @@ export interface UserImage {
 }
 
 export interface User {
-  date_of_birth?: number;
+  date_of_birth?: string;
   interests?: string[];
   vegetarian?: string;
   fitness_routin?: string;
@@ -19,7 +19,6 @@ export interface User {
   name?: string;
   email?: string;
   gender?: Gender;
-  age?: number;
   location?: string;
   completed?: boolean;
   religion?: string;
