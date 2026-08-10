@@ -153,7 +153,9 @@ export async function getFilteredProfiles(params: {
   return (data as UserRow[]).map(mapUserToProfile);
 }
 
-export async function getProfile(id: number): Promise<{ user: UserRow } | null> {
+export async function getProfile(id: number): Promise<UserRow | null> {
+  'use client';
+
   const { data: user, error } = await db
     .from("users")
     .select("*")
@@ -165,7 +167,7 @@ export async function getProfile(id: number): Promise<{ user: UserRow } | null> 
     throw new Error(error.message)
   }
 
-  return { user };
+  return (user);
 }
 
 export async function getProfiles(): Promise<{ users: UserRow[] }> {

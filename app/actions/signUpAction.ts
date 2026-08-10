@@ -5,6 +5,7 @@ import { db } from "../lib/bd";
 import { hashPassword } from "../lib/auth";
 import { cookies } from "next/headers";
 import { ActionState } from "./signInAction";
+import { UserImage } from "../types/auth";
 
 export async function signUpAction(
   prevState: ActionState | null,
@@ -71,7 +72,7 @@ export async function signUpAction(
         agree_with: Boolean(termsAgreed),
       })
 
-      .select("id")
+      .select("id, images")
       .single();
 
     if (insertError || !insertUser) {
@@ -100,8 +101,19 @@ export async function signUpAction(
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
-    const id: number = insertUser.id
-    return { success: true, token, id };
+    const id: number = insertUser.id;
+    const images: UserImage[] = insertUser.images;
+
+    function getProfileImageUrl(images: UserImage[]): string | undefined {
+      const profileImage = images.find(
+        (img) => img.is_profile && !img.is_removed,
+      );
+
+      return profileImage ? profileImage.url : undefined;
+    }
+
+    const profile: string | undefined = getProfileImageUrl(images);
+    return { success: true, token, id, profile };
   } catch (error) {
     console.error("SignUp Error:", error);
     return { error: "An unexpected error occurred. Please try again." };

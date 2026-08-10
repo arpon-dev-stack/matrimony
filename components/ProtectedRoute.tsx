@@ -13,7 +13,8 @@ export default function ProtectedRoute({
   children,
   fallback,
 }: ProtectedRouteProps) {
-  const { id, token, isLoading, getValidToken } = useAuth();
+  const { user, token, isLoading, getValidToken } = useAuth();
+  const id = user?.id;
   const router = useRouter();
   const [isVerifying, setIsVerifying] = useState(true);
 

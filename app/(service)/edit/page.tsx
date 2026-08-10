@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import Image from "next/image";
 import { CldUploadWidget } from "next-cloudinary";
 import Link from "next/link";
@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/_store/AuthContext";
 import { updateProfileAction } from "@/app/actions/updateProfileAction";
 import { UserImage } from "@/app/types/auth";
+import { useUserProfile } from "@/app/lib/useUserProfile";
+import EditProfileSkeleton from "@/components/ui/EditProfile";
 import {
   Camera,
   Plus,
@@ -21,120 +23,92 @@ import {
 } from "lucide-react";
 
 export const EditProfile: React.FC = () => {
-  const { user, accessToken, updateUser } = useAuth();
+  const { id, token } = useAuth();
+  const { user, isLoading } = useUserProfile(id);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const activeUser = user;
+  // Form State Definitions
+  const [profileImage, setProfileImage] = useState<string>("");
+  const [dateOfBirth, setDateOfBirth] = useState<string>("");
+  const [fullName, setFullName] = useState<string>("");
+  const [bio, setBio] = useState<string>("");
+  const [occupation, setOccupation] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
+  const [education, setEducation] = useState<string>("");
+  const [religion, setReligion] = useState<string>("");
+  const [language, setLanguage] = useState<string>("");
+  const [familyValue, setFamilyValue] = useState<string>("Modern");
+  const [fitnessRoutine, setFitnessRoutine] = useState<string>("3-4 times a week");
+  const [dietary, setDietary] = useState<string>("Non-Vegetarian");
+  const [interests, setInterests] = useState<string[]>([]);
+  const [gallery, setGallery] = useState<{ id: string; src: string; is_removed: boolean }[]>([]);
 
-  // Filter out soft-deleted images (where is_removed is true)
-  const activeImages =
-    activeUser?.images?.filter((img: UserImage) => !img.is_removed) || [];
-
-  // Initial Form States
-  const initialProfileImg =
-    activeImages.find((img: UserImage) => img.is_profile)?.url ||
-    activeImages[0]?.url ||
-    "";
-
-  const initialGallery = activeImages
-    .filter((img: UserImage) => !img.is_profile)
-    .map((img: UserImage, idx: number) => ({
-      id: idx.toString(),
-      src: img.url,
-      is_removed: false,
-    }));
-
-  const [profileImage, setProfileImage] = useState<string>(initialProfileImg);
-  const [dateOfBirth, setDateOfBirth] = useState<string>(activeUser?.date_of_birth || "");
-  const [fullName, setFullName] = useState<string>(activeUser?.name || "");
-  const [bio, setBio] = useState<string>(activeUser?.bio || "");
-  const [occupation, setOccupation] = useState<string>(
-    activeUser?.occupation || "",
-  );
-  const [location, setLocation] = useState<string>(activeUser?.location || "");
-  const [education, setEducation] = useState<string>(
-    activeUser?.education || "",
-  );
-  const [religion, setReligion] = useState<string>(activeUser?.religion || "");
-  const [language, setLanguage] = useState<string>(activeUser?.language || "");
-  const [familyValue, setFamilyValue] = useState<string>(
-    activeUser?.family_value || "Modern",
-  );
-  const [fitnessRoutine, setFitnessRoutine] = useState<string>(
-    activeUser?.fitness_routin || "3-4 times a week",
-  );
-  const [dietary, setDietary] = useState<string>(
-    activeUser?.vegetarian ? "Vegetarian" : "Non-Vegetarian",
-  );
-
-  const [interests, setInterests] = useState<string[]>(
-    activeUser?.interests || [],
-  );
   const [newInterest, setNewInterest] = useState("");
   const [isAddingInterest, setIsAddingInterest] = useState(false);
 
-  // Gallery state now retains the `is_removed` attribute
-  const [gallery, setGallery] =
-    useState<{ id: string; src: string; is_removed: boolean }[]>(
-      initialGallery,
-    );
+  // Sync state once user profile is loaded asynchronously
+  useEffect(() => {
+    if (!user) return;
+
+    const activeImages = user.images?.filter((img: UserImage) => !img.is_removed) || [];
+
+    const profileImg =
+      activeImages.find((img: UserImage) => img.is_profile)?.url ||
+      activeImages[0]?.url ||
+      "";
+
+    const initialGallery = activeImages
+      .filter((img: UserImage) => !img.is_profile)
+      .map((img: UserImage, idx: number) => ({
+        id: idx.toString(),
+        src: img.url,
+        is_removed: false,
+      }));
+
+    setProfileImage(profileImg);
+    setDateOfBirth(user.date_of_birth || "");
+    setFullName(user.name || "");
+    setBio(user.bio || "");
+    setOccupation(user.occupation || "");
+    setLocation(user.location || "");
+    setEducation(user.education || "");
+    setReligion(user.religion || "");
+    setLanguage(user.language || "");
+    setFamilyValue(user.family_value || "Modern");
+    setFitnessRoutine(user.fitness_routin || "3-4 times a week");
+    setDietary(user.vegetarian ? "Vegetarian" : "Non-Vegetarian");
+    setInterests(user.interests || []);
+    setGallery(initialGallery);
+  }, [user]);
 
   const handleRemoveInterest = (tag: string) => {
-    setInterests(interests.filter((i) => i !== tag));
+    setInterests((prev) => prev.filter((i) => i !== tag));
   };
 
   const handleAddInterest = () => {
     if (newInterest.trim() && !interests.includes(newInterest.trim())) {
-      setInterests([...interests, newInterest.trim()]);
+      setInterests((prev) => [...prev, newInterest.trim()]);
       setNewInterest("");
       setIsAddingInterest(false);
     }
   };
 
+  // Soft-delete photos so their `is_removed` status persists into the formData submit payload
   const handleDeletePhoto = (id: string) => {
-    setGallery((prev) => prev.filter((item) => item.id !== id));
+    setGallery((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, is_removed: true } : item))
+    );
   };
 
-  // Submit Handler using Transition & Auth State Sync
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
     startTransition(async () => {
       try {
         const res = await updateProfileAction({ success: false }, formData);
-
         if (res?.success) {
-          // Reconstruct updated images array structure with explicit schema attributes
-          const updatedImages = [
-            ...(profileImage
-              ? [{ url: profileImage, is_profile: true, is_removed: false }]
-              : []),
-            ...gallery.map((g) => ({
-              url: g.src,
-              is_profile: false,
-              is_removed: g.is_removed ?? false,
-            })),
-          ];
-
-          // Sync client-side Auth Context
-          updateUser({
-            name: fullName,
-            bio,
-            occupation,
-            location,
-            education,
-            religion,
-            language,
-            family_value: familyValue,
-            fitness_routin: fitnessRoutine,
-            vegetarian: dietary,
-            interests,
-            images: updatedImages,
-            date_of_birth: dateOfBirth
-          });
-
           router.push("/user");
         }
       } catch (err) {
@@ -143,19 +117,21 @@ export const EditProfile: React.FC = () => {
     });
   };
 
+  if (isLoading) {
+    return (
+      <EditProfileSkeleton/>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#fbf9f8] text-[#1b1c1c] font-sans antialiased pb-16 md:pb-12">
       <main className="max-w-[900px] mx-auto px-4 md:px-16 py-12">
         <form onSubmit={handleSubmit}>
           {/* Hidden Inputs for Form Data Serialization */}
-          <input type="hidden" name="id" value={user?.id} />
-          <input type="hidden" name="accessToken" value={accessToken} />
+          <input type="hidden" name="id" value={user?.id || ""} />
+          <input type="hidden" name="accessToken" value={token || ""} />
           <input type="hidden" name="profileImage" value={profileImage} />
-          <input
-            type="hidden"
-            name="interests"
-            value={JSON.stringify(interests)}
-          />
+          <input type="hidden" name="interests" value={JSON.stringify(interests)} />
           <input type="hidden" name="gallery" value={JSON.stringify(gallery)} />
 
           {/* Profile Photo & Identity Section */}
@@ -215,9 +191,7 @@ export const EditProfile: React.FC = () => {
                   <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
                     About You (Bio)
                   </label>
-                  <span className="text-xs text-[#43474e]">
-                    {bio.length}/500
-                  </span>
+                  <span className="text-xs text-[#43474e]">{bio.length}/500</span>
                 </div>
                 <textarea
                   name="bio"
@@ -255,13 +229,13 @@ export const EditProfile: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="space-x-4">
-                <label htmlFor="date_of_birth" className="font-medium">
+              <div className="space-y-2">
+                <label htmlFor="dateOfBirth" className="text-xs uppercase tracking-wider font-semibold text-[#43474e] block">
                   Date of Birth
                 </label>
                 <input
                   type="date"
-                  onChange={e => setDateOfBirth(e.target.value)}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
                   value={dateOfBirth}
                   id="dateOfBirth"
                   name="dateOfBirth"
@@ -278,9 +252,7 @@ export const EditProfile: React.FC = () => {
                 <h2 className="font-serif text-2xl font-semibold text-[#000d22]">
                   Moments &amp; Journeys
                 </h2>
-                <p className="text-sm text-[#43474e]">
-                  Upload additional gallery pictures
-                </p>
+                <p className="text-sm text-[#43474e]">Upload additional gallery pictures</p>
               </div>
 
               <CldUploadWidget
@@ -467,16 +439,10 @@ export const EditProfile: React.FC = () => {
                     onChange={(e) => setFitnessRoutine(e.target.value)}
                     className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none appearance-none"
                   >
-                    <option value="Daily / High Intensity">
-                      Daily / High Intensity
-                    </option>
+                    <option value="Daily / High Intensity">Daily / High Intensity</option>
                     <option value="3-4 times a week">3-4 times a week</option>
-                    <option value="Occasional / Weekend">
-                      Occasional / Weekend
-                    </option>
-                    <option value="Yoga & Meditation focus">
-                      Yoga &amp; Meditation focus
-                    </option>
+                    <option value="Occasional / Weekend">Occasional / Weekend</option>
+                    <option value="Yoga & Meditation focus">Yoga &amp; Meditation focus</option>
                   </select>
                 </div>
               </div>
@@ -545,9 +511,7 @@ export const EditProfile: React.FC = () => {
                   <option value="Modern">Modern</option>
                   <option value="Traditional">Traditional</option>
                   <option value="Liberal">Liberal</option>
-                  <option value="Conservative Modern">
-                    Conservative Modern
-                  </option>
+                  <option value="Conservative Modern">Conservative Modern</option>
                 </select>
               </div>
             </div>
@@ -556,8 +520,7 @@ export const EditProfile: React.FC = () => {
               <div className="flex items-center gap-3 p-4 bg-[#002349]/10 rounded-lg border border-[#002349]/20">
                 <Info className="w-5 h-5 text-[#002349] shrink-0" />
                 <p className="text-sm text-[#2c476f]">
-                  Values and background information help us find your most
-                  compatible matches.
+                  Values and background information help us find your most compatible matches.
                 </p>
               </div>
             </div>
@@ -566,7 +529,7 @@ export const EditProfile: React.FC = () => {
           {/* Form Action Bar */}
           <div className="mt-8 flex justify-end gap-4">
             <Link
-              href="/profile"
+              href="/user"
               className="px-6 py-2 border border-[#000d22] text-[#000d22] font-medium rounded-lg hover:bg-[#002349] hover:text-white transition-all flex items-center justify-center"
             >
               Cancel

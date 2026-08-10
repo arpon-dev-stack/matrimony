@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { db } from "../lib/bd";
 import { generateTokens } from "../lib/tokenGenerator";
+import { UserImage } from "../types/auth";
 
 export async function refreshTokenAction() {
   const cookieStore = await cookies();
@@ -16,7 +17,7 @@ export async function refreshTokenAction() {
     // 1. Fetch user by old refresh token
     const { data: existingUser, error: fetchError } = await db
       .from("users")
-      .select("id")
+      .select("id, images")
       .eq("refresh_token", oldRefreshToken)
       .maybeSingle();
 
@@ -27,9 +28,8 @@ export async function refreshTokenAction() {
     }
 
     // 2. Generate new token pair (Rotation)
-    const { accessToken: token, refreshToken: newRefreshToken } = generateTokens(
-      existingUser.id,
-    );
+    const { accessToken: token, refreshToken: newRefreshToken } =
+      generateTokens(existingUser.id);
 
     // 3. Update database with new refresh token
     await db
@@ -47,8 +47,21 @@ export async function refreshTokenAction() {
     });
 
     const id: number = existingUser.id;
+    const images: UserImage[] = existingUser.images;
 
-    return { success: true, token, id };
+    function getProfileImageUrl(images: UserImage[]): string | undefined {
+      const profileImage = images.find(
+        (img) => img.is_profile && !img.is_removed,
+      );
+
+      return profileImage ? profileImage.url : undefined;
+    }
+
+    const profile: string | undefined = getProfileImageUrl(images);
+
+    console.log(profile);
+
+    return { success: true, token, id, profile };
   } catch (error) {
     console.error("Refresh Token Error:", error);
     return { error: "Session restoration failed" };

@@ -30,7 +30,7 @@ export default function SignupForm() {
 
   useEffect(() => {
       if (state?.id) {
-        signIn({id: state.id, token: state.token}); // Stores full profile (id, email, joiningfor, location, etc.)
+        signIn({id: state.id, token: state.token, profile: state.profile}); // Stores full profile (id, email, joiningfor, location, etc.)
         router.push('/user'); // Redirects client-side after state update
       }
     }, [state, signIn, router]);

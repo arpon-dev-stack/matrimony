@@ -4,10 +4,11 @@ import { generateTokens } from "../lib/tokenGenerator";
 import { verifyPassword } from "../lib/auth";
 import { cookies } from "next/headers";
 import { db } from "../lib/bd";
+import { UserImage } from "../types/auth";
 
 export type ActionState =
-  | { success: true; token: string; id: number; error?: never }
-  | { error: string; success?: never; token?: never; id?: never };
+  | { success: true; token: string; id: number; error?: never, profile?: string }
+  | { error: string; success?: never; token?: never; id?: never, profile?: never };
 
 export async function signInAction(
   prevState: ActionState | null,
@@ -24,7 +25,7 @@ export async function signInAction(
     // Select password for verification alongside user profile fields
     const { data: existingUser, error: fetchError } = await db
       .from("users")
-      .select("id, password")
+      .select("id, password, images")
       .eq("email", email)
       .maybeSingle();
 
@@ -63,8 +64,22 @@ export async function signInAction(
 
     // Safely structure user object matching User
     const id: number = existingUser.id;
+    const images: UserImage[] = existingUser.images;
 
-    return { success: true, token: accessToken, id };
+    function getProfileImageUrl(images: UserImage[]): string | undefined {
+      const profileImage = images.find(
+        (img) => img.is_profile && !img.is_removed,
+      );
+
+      return profileImage ? profileImage.url : undefined;
+    }
+
+    const profile: string | undefined = getProfileImageUrl(images);
+
+    console.log(profile);
+    
+    return { success: true, token: accessToken, id, profile };
+
   } catch (error) {
     console.error("SignIn Error:", error);
     return { error: "An unexpected error occurred. Please try again." };

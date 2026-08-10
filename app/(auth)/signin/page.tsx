@@ -20,7 +20,7 @@ export default function SignInForm() {
 
     if (state?.success && !hasHandleAuth) {
       hasHandleAuth = true
-      signIn({id:state.id, token: state.token});
+      signIn({id:state.id, token: state.token, profile: state.profile});
       router.push('/user');
     }
   }, [state, signIn, router]);

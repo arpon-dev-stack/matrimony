@@ -1,15 +1,14 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-// import { User} from '../types/auth';
 import { refreshTokenAction } from '../actions/refreshTokenAction';
 import { signOutAction } from '../actions/signOutAction'; // Import signout server action
 
 export type AuthContextType = {
-  id: number | null;
+  user: {id: number, profile: string} | null;
   token: string | null;
   isLoading: boolean;
-  signIn: (data: {id: number, token: string}) => void;
+  signIn: (data: {id: number, token: string, profile: string}) => void;
   signOut: () => Promise<void>; // Updated to Promise<void>
   getValidToken: () => Promise<string | undefined>;
   // updateUser: (updatedFields: User) => void;
@@ -18,7 +17,7 @@ export type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [id, setId] = useState<number | null>(null);
+  const [user, setUser] = useState<{id: number, profile: string} | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -28,17 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await refreshTokenAction();
       if (res.success && res.token && res.id) {
         setToken(res.token);
-        setId(res.id);
+        setUser({id: res.id, profile: res.profile});
         return res.token;
       } else {
         setToken(null);
-        setId(null);
+        setUser(null);
         return null;
       }
     } catch (err) {
       console.error("Session refresh failed", err);
       setToken(null);
-      setId(null);
+      setUser(null);
       return null;
     }
   }, []);
@@ -61,8 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return await refreshSession();
   }, [token, refreshSession]);
 
-  const signIn = useCallback((data: {id: number, token: string}) => {
-    setId(data.id);
+  const signIn = useCallback((data: {id: number, token: string, profile: string}) => {
+    setUser({id: data.id, profile: data.profile});
     setToken(data.token);
   }, []);
 
@@ -73,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Sign out action error:", error);
     } finally {
-      setId(null);
+      setUser(null);
       setToken(null);
     }
   }, []);
@@ -88,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        id,
+        user,
         token,
         isLoading,
         signIn,

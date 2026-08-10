@@ -1,7 +1,10 @@
-import React from "react";
-import { notFound } from "next/navigation";
-import { db } from "@/app/lib/bd";
+"use client";
+
+import React, { useState, useEffect, use } from "react";
+import { getProfile } from "@/app/lib/profiles";
 import { PrimaryGoldButton } from "@/components/buttons/PrimaryColdenButton";
+import { UserRow } from "@/app/lib/profiles";
+import UserProfileSkeleton from "@/components/ui/UserLoading";
 import { SecondaryOutlineButton } from "@/components/buttons/SecondaryOutlineButton";
 import { User } from "@/app/types/auth";
 import {
@@ -18,6 +21,7 @@ import {
   Clock,
   Briefcase,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 
 // Types
@@ -31,23 +35,58 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function ProfilePage({ params }: PageProps) {
-  const { id } = await params;
+export default function ProfilePage({ params }: PageProps) {
+  // Unwrap Next.js 15+ dynamic route params using React.use()
+  const resolvedParams = use(params);
+  const { id } = resolvedParams;
+  const [user, setUser] = useState<UserRow | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Fetch user details from Supabase using `db`
-  const { data: user, error } = await db
-    .from("users")
-    .select("*")
-    .eq("id", id)
-    .single();
+  useEffect(() => {
+    let isCancled = false;
+    const getUser = async (id: number | null) => {
+      try {
+        setIsLoading(true);
+        const getUser = await getProfile(id!);
+        if (!getUser) {
+          setError("Don't Find Any User");
+          setIsLoading(false);
+        }
+
+        if (!isCancled) {
+          setUser(getUser);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        setError(
+          "Try again: " + (err instanceof Error ? err.message : String(err)),
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getUser(Number(id));
+
+    return () => {
+      isCancled = true;
+    };
+  }, [id]);
+
+  if (isLoading) {
+    return <UserProfileSkeleton />;
+  }
 
   if (error || !user) {
-    notFound();
+    <div className="min-h-screen bg-[#fbf9f8] flex items-center justify-center text-gray-500 font-sans">
+      {error}
+    </div>;
   }
 
   // Filter non-removed images
   const activeImages: ImageItem[] =
-    user.images?.filter((img: ImageItem) => !img.is_removed) || [];
+    user?.images?.filter((img: ImageItem) => !img.is_removed) || [];
 
   // Determine main profile image
   const profileImage =
@@ -59,15 +98,15 @@ export default async function ProfilePage({ params }: PageProps) {
   const galleryImages = activeImages.filter((img) => img.url !== profileImage);
 
   // Normalize bio paragraphs
-  const bioParagraphs = Array.isArray(user.bio)
-    ? user.bio
-    : user.bio
-    ? [user.bio]
-    : [];
+  const bioParagraphs = Array.isArray(user?.bio)
+    ? user?.bio
+    : user?.bio
+      ? [user?.bio]
+      : [];
 
   // Format joined date
-  const joinedDate = user.created_at
-    ? new Date(user.created_at).toLocaleDateString("en-US", {
+  const joinedDate = user?.created_at
+    ? new Date(user?.created_at).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       })
@@ -77,17 +116,16 @@ export default async function ProfilePage({ params }: PageProps) {
     <div className="bg-[#fbf9f8] text-[#1b1c1c] font-sans min-h-screen selection:bg-[#fed488] selection:text-[#261900] pb-20 lg:pb-12">
       <main className="max-w-7xl mx-auto px-4 py-12">
         {/* Hero Section */}
-        <HeroSection
-          user={user}
-          profileImage={profileImage}
-        />
+        <HeroSection user={user} profileImage={profileImage} />
 
         {/* Content Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Main Details (Bio & Gallery) */}
           <div className="lg:col-span-8 space-y-12">
             {bioParagraphs.length > 0 && <BioSection bio={bioParagraphs} />}
-            {galleryImages.length > 0 && <GallerySection images={galleryImages} />}
+            {galleryImages.length > 0 && (
+              <GallerySection images={galleryImages} />
+            )}
           </div>
 
           {/* Sidebar */}
@@ -118,11 +156,11 @@ function HeroSection({
         <div className="aspect-[4/5] overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-sm">
           <img
             src={profileImage}
-            alt={user.name || "User profile image"}
+            alt={user?.name || "User profile image"}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
         </div>
-        {user.is_verified && (
+        {user?.is_verified && (
           <div className="absolute top-6 right-6">
             <span className="flex items-center gap-1.5 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full border border-[#C5A059]/30 shadow-sm text-xs font-semibold uppercase tracking-wider text-[#775a19]">
               <CheckCircle2 className="w-4 h-4 text-[#775a19]" />
@@ -137,33 +175,33 @@ function HeroSection({
         <div>
           <div className="mb-6">
             <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#000d22] mb-3 capitalize">
-              {user.name || "Anonymous User"}
+              {user?.name || "Anonymous User"}
             </h1>
 
             <div className="flex flex-wrap items-center gap-4 text-gray-600 font-medium text-sm">
-              {user.age && (
+              {user?.age && (
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-gray-400" />
-                  {user.age} Years Old
+                  {user?.age} Years Old
                 </span>
               )}
 
-              {user.gender && (
+              {user?.gender && (
                 <>
                   <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                   <span className="flex items-center gap-1.5 capitalize">
                     <UserCheck className="w-4 h-4 text-gray-400" />
-                    {user.gender}
+                    {user?.gender}
                   </span>
                 </>
               )}
 
-              {user.location && (
+              {user?.location && (
                 <>
                   <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                   <span className="flex items-center gap-1.5">
                     <MapPin className="w-4 h-4 text-gray-400" />
-                    {user.location}
+                    {user?.location}
                   </span>
                 </>
               )}
@@ -187,20 +225,20 @@ function HeroSection({
             <StatRow
               icon={Briefcase}
               label="Occupation"
-              value={user.occupation || "Not Provided"}
+              value={user?.occupation || "Not Provided"}
             />
             <StatRow
               icon={GraduationCap}
               label="Education"
-              value={user.education || "Not Provided"}
+              value={user?.education || "Not Provided"}
             />
             <StatRow
               icon={Sparkles}
               label="Religion"
-              value={user.religion || "Not Provided"}
+              value={user?.religion || "Not Provided"}
             />
-            {user.height && (
-              <StatRow icon={Ruler} label="Height" value={user.height} />
+            {user?.height && (
+              <StatRow icon={Ruler} label="Height" value={user?.height} />
             )}
           </div>
         </div>
@@ -227,7 +265,9 @@ function StatRow({
         <p className="text-[12px] tracking-wider uppercase font-semibold text-gray-500 mb-0.5">
           {label}
         </p>
-        <p className="font-semibold text-[#000d22] text-sm capitalize">{value}</p>
+        <p className="font-semibold text-[#000d22] text-sm capitalize">
+          {value}
+        </p>
       </div>
     </div>
   );
@@ -288,14 +328,14 @@ function Sidebar({
       </h3>
 
       {/* Interests */}
-      {user.interests && user.interests.length > 0 && (
+      {user?.interests && user?.interests.length > 0 && (
         <div>
           <p className="text-[12px] tracking-wider uppercase font-semibold text-gray-500 mb-3 flex items-center gap-1.5">
             <Tag className="w-3.5 h-3.5" />
             Interests
           </p>
           <div className="flex flex-wrap gap-2">
-            {user.interests.map((interest, i) => (
+            {user?.interests.map((interest, i) => (
               <span
                 key={i}
                 className="bg-[#fbf9f8] text-[#000d22] px-3 py-1 rounded-full text-xs font-medium border border-gray-200 capitalize"
@@ -314,22 +354,22 @@ function Sidebar({
           Dietary Choice
         </p>
         <span className="inline-block bg-gray-50 text-[#000d22] px-3 py-1 rounded-md text-sm font-medium border border-gray-200">
-          {user.vegetarian ? "Vegetarian" : "Non-Vegetarian"}
+          {user?.vegetarian ? "Vegetarian" : "Non-Vegetarian"}
         </span>
       </div>
 
       {/* Profile Status Indicator */}
       <div className="pt-2 border-t border-gray-100">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-gray-500">Profile Status</span>
+          <span className="text-[#000d22]/60">Profile Status</span>
           <span
             className={`font-semibold px-2 py-0.5 rounded-full ${
-              user.completed
+              user?.completed
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                 : "bg-amber-50 text-amber-700 border border-amber-200"
             }`}
           >
-            {user.completed ? "Completed" : "Incomplete"}
+            {user?.completed ? "Completed" : "Incomplete"}
           </span>
         </div>
       </div>

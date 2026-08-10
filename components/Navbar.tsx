@@ -6,13 +6,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/_store/AuthContext";
-import { getProfileImageUrl } from "@/app/lib/getProfileImageUrl";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const { id } = useAuth();
-  const avatarUrl = getProfileImageUrl('');
+  const { user } = useAuth();
+
+  console.log(user?.profile);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -69,13 +69,13 @@ const Navbar = () => {
 
         {/* Right Side Action Buttons */}
         <div className="flex items-center gap-4">
-          {id ? (
+          {user ? (
             <Link
               href="/user"
               className="relative border-2 border-white block h-9 w-9 shrink-0 overflow-hidden rounded-full"
             >
               <Image
-                src={avatarUrl}
+                src={user.profile || '/hello.png'}
                 alt={"User profile picture"}
                 fill
                 sizes="36px"
