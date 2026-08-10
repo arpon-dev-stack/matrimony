@@ -5,7 +5,7 @@ import { getAgeInYears } from "@/app/lib/getAgeInYear";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { CardProfile } from "@/app/lib/profiles";
-export default function ProfileCard({ profile }: {profile: CardProfile}) {
+export default function ProfileCard({ profile }: { profile: CardProfile }) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -22,23 +22,13 @@ export default function ProfileCard({ profile }: {profile: CardProfile}) {
             transform: isHovered ? "scale(1.05)" : "scale(1)",
           }}
         />
-        {profile.badge && (
-          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-            <span className="material-symbols-outlined text-[#775a19] text-[16px]">
-              verified
-            </span>
-            <span className="text-[11px] text-[#000d22] uppercase font-bold tracking-wider">
-              {profile.badge}
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="p-6">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-serif text-xl text-[#000d22]">{profile.name}</h3>
           <span className="text-base text-[#775a19] font-semibold">
-            {getAgeInYears(profile.date_of_birth)}
+            {getAgeInYears(profile.date_of_birth || "0")}
           </span>
         </div>
 
@@ -66,16 +56,7 @@ export default function ProfileCard({ profile }: {profile: CardProfile}) {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-8">
-          {profile.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-2 py-0.5 bg-[#fbf9f8] text-[11px] text-[#785a1a] rounded font-medium"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+        <div className="flex flex-wrap gap-2 mb-8"></div>
 
         <Link
           href={`/profile/${profile.id}`}
@@ -87,6 +68,6 @@ export default function ProfileCard({ profile }: {profile: CardProfile}) {
           View Profiel
         </Link>
       </div>
-    </div>
+  </div>
   );
 }

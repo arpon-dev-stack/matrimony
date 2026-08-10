@@ -1,15 +1,22 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { refreshTokenAction } from '../actions/refreshTokenAction';
-import { signOutAction } from '../actions/signOutAction'; // Import signout server action
-import { AuthObject, AuthUserGlobalState } from '../types/auth';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
+import { refreshTokenAction } from "../actions/refreshTokenAction";
+import { signOutAction } from "../actions/signOutAction"; // Import signout server action
+import { AuthObject, AuthUserGlobalState } from "../types/auth";
 
 export type AuthContextType = {
   user: AuthUserGlobalState | null;
   token: string | null;
   isLoading: boolean;
-  signIn: (data: {id: number, token: string, profile: string | null}) => void;
+  signIn: (data: { id: number; token: string; profile: string | null }) => void;
   signOut: () => Promise<void>; // Updated to Promise<void>
   getValidToken: () => Promise<string | undefined>;
   // updateUser: (updatedFields: User) => void;
@@ -26,9 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = useCallback(async () => {
     try {
       const res = await refreshTokenAction();
-      if (res.success && res.token && res.id) {
+      if (res.success && res.token && res.id !== null && res.id !== undefined) {
         setToken(res.token);
-        setUser({id: res.id, profile: res.profile});
+        setUser({ id: res.id, profile: res.profile });
         return res.token;
       } else {
         setToken(null);
@@ -51,7 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (isMounted) setIsLoading(false);
     }
     restoreSession();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [refreshSession]);
 
   const getValidToken = useCallback(async (): Promise<string | undefined> => {
@@ -62,8 +71,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token, refreshSession]);
 
   const signIn = useCallback((data: AuthObject) => {
-    setUser({id: data.id, profile: data.profile});
-    setToken(data.token);
+    if (data.token && data.id !== null && data.id !== undefined) {
+      setUser({ id: data.id, profile: data.profile });
+      setToken(data.token);
+    }
   }, []);
 
   // Clear DB token, delete cookie, then clear client memory
@@ -77,13 +88,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(null);
     }
   }, []);
-
-  // const updateUser = useCallback((updatedFields: User) => {
-  //   setId((prevUser: User | undefined) => ({
-  //     ...prevUser,
-  //     ...updatedFields,
-  //   }));
-  // }, [])
 
   return (
     <AuthContext.Provider
@@ -104,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

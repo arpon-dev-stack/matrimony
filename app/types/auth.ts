@@ -48,4 +48,4 @@ export interface AuthFormState {
   token?: string;
 }
 
-export interface UpdateProfile {error?: string, success?: boolean}
+export interface UpdateProfile {error?: string, success: boolean}

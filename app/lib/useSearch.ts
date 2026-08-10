@@ -6,8 +6,8 @@ import { getFilteredProfiles } from "./profiles";
 import { CardProfile } from "./profiles";
 
 interface Search {
-  lookingFor: string | undefined;
-  ageRange: string | undefined;
+  looking_for: string | undefined;
+  age_range: string | undefined;
   location: string | undefined;
   religion: string | undefined;
   education: string | undefined;
@@ -23,13 +23,14 @@ export const useSearch = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  const lookingFor: string | undefined = params.get("lookingfor") ?? undefined;
-  const ageRange: string | undefined = params.get("age_range") ?? undefined;
+  const looking_for: string | undefined = params.get("looking_for") ?? undefined;
+  const age_range: string | undefined = params.get("age_range") ?? undefined;
   const location: string | undefined = params.get("location") ?? undefined;
   const religion: string | undefined = params.get("religion") ?? undefined;
   const education: string | undefined = params.get("education") ?? undefined;
   const interests: string | undefined = params.get("interests") ?? undefined;
   const name: string | undefined = params.get("name") ?? undefined;
+
 
   useEffect(() => {
     let is_cancled = false;
@@ -47,19 +48,29 @@ export const useSearch = () => {
         }
         setIsLoading(false);
       } catch (err) {
-        setError("No User Found");
+        setError(
+          "Try again: " + (err instanceof Error ? err.message : String(err)),
+        );
         setIsLoading(false);
       } finally {
         setIsLoading(false);
       }
     };
 
-    search({ lookingFor, ageRange, location, religion, education, interests, name });
+    search({
+      looking_for,
+      age_range,
+      location,
+      religion,
+      education,
+      interests,
+      name,
+    });
 
     return () => {
       is_cancled = true;
     };
-  }, [lookingFor, ageRange, location, religion, education, interests, name]);
+  }, [looking_for, age_range, location, religion, education, interests, name]);
 
-  return {isLoading, error, searchResult};
+  return { isLoading, error, searchResult };
 };

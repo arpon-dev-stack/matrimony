@@ -22,7 +22,7 @@ import UserDetails from "@/components/ui/UserDetails";
 
 export default function UserProfile() {
   const { user: userState } = useAuth();
-  const {user, error, isLoading} = useUserProfile(userState?.id)
+  const {user, error, isLoading} = useUserProfile(userState?.id as number)
 
   if (error) {
     return (

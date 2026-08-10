@@ -33,16 +33,16 @@ export async function updateProfileAction(
   }
 
   // 2. Extract Text Fields
-  const fullName = formData.get("fullName")?.toString().trim();
+  const fullName = formData.get("full_name")?.toString().trim();
   const bio = formData.get("bio")?.toString().trim() || null;
   const occupation = formData.get("occupation")?.toString().trim();
   const location = formData.get("location")?.toString().trim();
   const education = formData.get("education")?.toString().trim();
   const religion = formData.get("religion")?.toString().trim();
   const language = formData.get("language")?.toString().trim();
-  const familyValue = formData.get("familyValue")?.toString();
-  const fitnessRoutine = formData.get("fitnessRoutine")?.toString();
-  const dateOfBirth = formData.get("dateOfBirth")?.toString();
+  const familyValue = formData.get("family_value")?.toString();
+  const fitnessRoutine = formData.get("fitness_routine")?.toString();
+  const dateOfBirth = formData.get("date_of_birth")?.toString();
   const dietary = formData.get("dietary")?.toString();
 
   console.log(`value ${dateOfBirth} and typeof ${typeof dateOfBirth}`);
@@ -50,7 +50,7 @@ export async function updateProfileAction(
   // 3. Parse JSON Arrays
   const rawInterests = formData.get("interests")?.toString() || "[]";
   const rawGallery = formData.get("gallery")?.toString() || "[]";
-  const profileImageUrl = formData.get("profileImage")?.toString() || "";
+  const profileImageUrl = formData.get("profile_image")?.toString() || "";
 
   const interestsArray: string[] = JSON.parse(rawInterests);
   const galleryArray: { id: string; src: string; isRemoved?: boolean }[] =
