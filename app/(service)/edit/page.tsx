@@ -416,38 +416,8 @@ export const EditProfile: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
-                    Dietary Preference
-                  </label>
-                  <select
-                    name="dietary"
-                    value={dietary}
-                    onChange={(e) => setDietary(e.target.value)}
-                    className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none appearance-none"
-                  >
-                    <option value="Vegetarian">Vegetarian</option>
-                    <option value="Non-Vegetarian">Non-Vegetarian</option>
-                  </select>
-                </div> */}
                 <SelectInput options={dietaryOption} value={dietary} name="dietary" label="Dietary Preference" onChange={setDietary}/>
 
-                {/* <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
-                    Fitness Routine
-                  </label>
-                  <select
-                    name="fitnessRoutine"
-                    value={fitnessRoutine}
-                    onChange={(e) => setFitnessRoutine(e.target.value)}
-                    className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none appearance-none"
-                  >
-                    <option value="Daily / High Intensity">Daily / High Intensity</option>
-                    <option value="3-4 times a week">3-4 times a week</option>
-                    <option value="Occasional / Weekend">Occasional / Weekend</option>
-                    <option value="Yoga & Meditation focus">Yoga &amp; Meditation focus</option>
-                  </select>
-                </div> */}
                 <SelectInput value={fitnessRoutine} name="fitnessRoutine" label="Fitness Routine" options={fitness_routin} onChange={setFitnessRoutine}/>
               </div>
             </div>
@@ -463,18 +433,6 @@ export const EditProfile: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-              {/* <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
-                  Religion / Spiritual Path
-                </label>
-                <input
-                  type="text"
-                  name="religion"
-                  value={religion}
-                  onChange={(e) => setReligion(e.target.value)}
-                  className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none"
-                />
-              </div> */}
               <SelectInput onChange={setReligion} value={religion} name="religion" options={religions} label="Religion"/>
 
               <div className="space-y-2">
@@ -503,22 +461,6 @@ export const EditProfile: React.FC = () => {
                 />
               </div>
 
-              {/* <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
-                  Family Values
-                </label>
-                <select
-                  name="familyValue"
-                  value={familyValue}
-                  onChange={(e) => setFamilyValue(e.target.value)}
-                  className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none appearance-none"
-                >
-                  <option value="Modern">Modern</option>
-                  <option value="Traditional">Traditional</option>
-                  <option value="Liberal">Liberal</option>
-                  <option value="Conservative Modern">Conservative Modern</option>
-                </select>
-              </div> */}
               <SelectInput label="Family Value" onChange={setFamilyValue} name="familyValue" value={familyValue} options={values}/>
             </div>
 

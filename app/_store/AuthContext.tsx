@@ -3,21 +3,22 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { refreshTokenAction } from '../actions/refreshTokenAction';
 import { signOutAction } from '../actions/signOutAction'; // Import signout server action
+import { AuthObject, AuthUserGlobalState } from '../types/auth';
 
 export type AuthContextType = {
-  user: {id: number, profile: string} | null;
+  user: AuthUserGlobalState | null;
   token: string | null;
   isLoading: boolean;
-  signIn: (data: {id: number, token: string, profile: string}) => void;
+  signIn: (data: {id: number, token: string, profile: string | null}) => void;
   signOut: () => Promise<void>; // Updated to Promise<void>
   getValidToken: () => Promise<string | undefined>;
   // updateUser: (updatedFields: User) => void;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<{id: number, profile: string} | null>(null);
+  const [user, setUser] = useState<AuthUserGlobalState | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -60,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return await refreshSession();
   }, [token, refreshSession]);
 
-  const signIn = useCallback((data: {id: number, token: string, profile: string}) => {
+  const signIn = useCallback((data: AuthObject) => {
     setUser({id: data.id, profile: data.profile});
     setToken(data.token);
   }, []);

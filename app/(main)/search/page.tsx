@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
-import ProfileData from '@/components/ProfileData';
-import { useSearch } from '@/app/lib/useSearch';
+import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
+import ProfileData from "@/components/ProfileData";
+import { useSearch } from "@/app/lib/useSearch";
 
 export default function EternalUnionApp() {
-  const { error, isLoading, searchResult } = useSearch();
+  const { isLoading, searchResult } = useSearch();
 
   return (
     <div className="flex w-full bg-[#fbf9f8] text-[#1b1c1c] antialiased overflow-hidden font-sans relative">
@@ -25,20 +25,21 @@ export default function EternalUnionApp() {
                 <div className="h-5 w-64 bg-gray-200 animate-pulse rounded mt-2" />
               ) : (
                 <p className="text-[#43474e] mt-1 text-sm md:text-base">
-                  {searchResult?.length ?? 0} curated matches found based on your preferences
+                  {searchResult?.length ?? 0} curated matches found based on
+                  your preferences
                 </p>
               )}
             </div>
 
             <div className="flex items-center gap-3">
-              <button 
-                className="lg:hidden flex items-center gap-2 bg-[#000d22] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#002349] transition-all"
-              >
+              <button className="lg:hidden flex items-center gap-2 bg-[#000d22] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#002349] transition-all">
                 <span>Filters</span>
               </button>
 
               <div className="hidden sm:flex flex-col lg:flex-row items-center gap-2 lg:gap-4">
-                <span className="text-sm text-nowrap text-[#43474e]">Sort by:</span>
+                <span className="text-sm text-nowrap text-[#43474e]">
+                  Sort by:
+                </span>
                 <select className="bg-transparent border-none text-sm font-semibold text-[#000d22] focus:ring-0 cursor-pointer outline-none">
                   <option>Most Relevant</option>
                   <option>Recently Active</option>
@@ -47,17 +48,7 @@ export default function EternalUnionApp() {
               </div>
             </div>
           </div>
-
-          {/* Conditional Rendering: Skeleton Grid vs Profile Data */}
-          {/* {isLoading ? (
-            <ProfileSkeletonGrid />
-          ) : error ? (
-            <div className="text-center py-12 text-red-500 font-medium">
-              {error}
-            </div>
-          ) : ( */}
-            <ProfileData profiles={searchResult ?? []} isLoading={isLoading} />
-          {/* )} */}
+          <ProfileData profiles={searchResult ?? []} isLoading={isLoading} />
         </div>
       </div>
     </div>

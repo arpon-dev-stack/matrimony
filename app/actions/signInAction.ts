@@ -7,8 +7,20 @@ import { db } from "../lib/bd";
 import { UserImage } from "../types/auth";
 
 export type ActionState =
-  | { success: true; token: string; id: number; error?: never, profile?: string }
-  | { error: string; success?: never; token?: never; id?: never, profile?: never };
+  | {
+      success: true;
+      token: string;
+      id: number;
+      error?: never;
+      profile: string | null;
+    }
+  | {
+      error: string;
+      success?: never;
+      token?: never;
+      id?: never;
+      profile?: never;
+    };
 
 export async function signInAction(
   prevState: ActionState | null,
@@ -41,7 +53,7 @@ export async function signInAction(
       return { error: "Invalid email or password." };
     }
 
-    const { accessToken, refreshToken } = generateTokens(existingUser.id);
+    const { accessToken: token, refreshToken } = generateTokens(existingUser.id);
 
     const { error: updateError } = await db
       .from("users")
@@ -66,20 +78,20 @@ export async function signInAction(
     const id: number = existingUser.id;
     const images: UserImage[] = existingUser.images;
 
-    function getProfileImageUrl(images: UserImage[]): string | undefined {
+    if (images.length > 0) {
+      const profile: string | null = getProfileImageUrl(images);
+      if (profile !== null) {
+        return { success: true, token, id, profile };
+      }
+    }
+    function getProfileImageUrl(images: UserImage[]): string | null {
       const profileImage = images.find(
         (img) => img.is_profile && !img.is_removed,
       );
 
-      return profileImage ? profileImage.url : undefined;
+      return profileImage ? profileImage.url : null;
     }
-
-    const profile: string | undefined = getProfileImageUrl(images);
-
-    console.log(profile);
-    
-    return { success: true, token: accessToken, id, profile };
-
+    return { success: true, token, id, profile: null };
   } catch (error) {
     console.error("SignIn Error:", error);
     return { error: "An unexpected error occurred. Please try again." };
