@@ -59,7 +59,7 @@ const STORIES = [
   },
 ];
 
-const StoryCard = ({ story }) => {
+const StoryCard = ({ story }: { story: {id: number, names: string, location: string, quote: string, image: string}}) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
