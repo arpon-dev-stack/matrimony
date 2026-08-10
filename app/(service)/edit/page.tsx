@@ -10,6 +10,7 @@ import { updateProfileAction } from "@/app/actions/updateProfileAction";
 import { UserImage } from "@/app/types/auth";
 import { useUserProfile } from "@/app/lib/useUserProfile";
 import EditProfileSkeleton from "@/components/ui/EditProfile";
+import { dietaryOption, fitness_routin, religions, values } from "@/app/lib/userFollow";
 import {
   Camera,
   Plus,
@@ -21,10 +22,11 @@ import {
   Info,
   UserX,
 } from "lucide-react";
+import { SelectInput } from "@/components/SelectInput";
 
 export const EditProfile: React.FC = () => {
-  const { id, token } = useAuth();
-  const { user, isLoading } = useUserProfile(id);
+  const { user:userState, token } = useAuth();
+  const { user, isLoading } = useUserProfile(userState?.id);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -414,7 +416,7 @@ export const EditProfile: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
                     Dietary Preference
                   </label>
@@ -427,9 +429,10 @@ export const EditProfile: React.FC = () => {
                     <option value="Vegetarian">Vegetarian</option>
                     <option value="Non-Vegetarian">Non-Vegetarian</option>
                   </select>
-                </div>
+                </div> */}
+                <SelectInput options={dietaryOption} value={dietary} name="dietary" label="Dietary Preference" onChange={setDietary}/>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
                     Fitness Routine
                   </label>
@@ -444,7 +447,8 @@ export const EditProfile: React.FC = () => {
                     <option value="Occasional / Weekend">Occasional / Weekend</option>
                     <option value="Yoga & Meditation focus">Yoga &amp; Meditation focus</option>
                   </select>
-                </div>
+                </div> */}
+                <SelectInput value={fitnessRoutine} name="fitnessRoutine" label="Fitness Routine" options={fitness_routin} onChange={setFitnessRoutine}/>
               </div>
             </div>
           </section>
@@ -459,7 +463,7 @@ export const EditProfile: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
                   Religion / Spiritual Path
                 </label>
@@ -470,7 +474,8 @@ export const EditProfile: React.FC = () => {
                   onChange={(e) => setReligion(e.target.value)}
                   className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none"
                 />
-              </div>
+              </div> */}
+              <SelectInput onChange={setReligion} value={religion} name="religion" options={religions} label="Religion"/>
 
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
@@ -498,7 +503,7 @@ export const EditProfile: React.FC = () => {
                 />
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
                   Family Values
                 </label>
@@ -513,7 +518,8 @@ export const EditProfile: React.FC = () => {
                   <option value="Liberal">Liberal</option>
                   <option value="Conservative Modern">Conservative Modern</option>
                 </select>
-              </div>
+              </div> */}
+              <SelectInput label="Family Value" onChange={setFamilyValue} name="familyValue" value={familyValue} options={values}/>
             </div>
 
             <div className="mt-8 pt-8 border-t border-[#c4c6cf]/30">

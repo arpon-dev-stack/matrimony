@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import { Search } from "lucide-react";
 
 export default function Header() {
@@ -12,17 +12,15 @@ export default function Header() {
   const [term, setTerm] = useState("");
 
   // Sync input value with URL search param on load or URL update
-  useEffect(() => {
-    setTerm(searchParams.get("search") || "");
-  }, [searchParams]);
 
   const handleSearch = () => {
     const params = new URLSearchParams(searchParams);
 
     if (term.trim()) {
-      params.set("search", term.trim());
+      params.set("name", term.trim());
+      setTerm('');
     } else {
-      params.delete("search");
+      params.delete("name");
     }
 
     push(`${pathname}?${params.toString()}`);
@@ -38,7 +36,7 @@ export default function Header() {
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSearch();
           }}
-          placeholder="Search by name, profession, or city..."
+          placeholder="Search by name"
           className="w-full bg-[#f5f3f3] border border-[#c4c6cf]/30 rounded-full h-11 pl-4 pr-14 text-sm focus:ring-2 focus:ring-[#775a19]/20 focus:border-[#775a19] outline-none transition-all"
         />
         <button

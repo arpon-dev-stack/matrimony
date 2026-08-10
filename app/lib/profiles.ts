@@ -10,7 +10,7 @@ export interface ImageItem {
 }
 
 export interface UserRow {
-  date_of_birth: string;
+  date_of_birth: number;
   id: number;
   name: string;
   joining_for: string;
@@ -38,7 +38,7 @@ export interface CardProfile {
   id: number;
   name: string;
   gender?: string;
-  age: number;
+  date_of_birth: number;
   location: string;
   religion?: string;
   profession: string;
@@ -69,7 +69,7 @@ function mapUserToProfile(user: UserRow): CardProfile {
     id: user.id,
     name: user.name || "Anonymous",
     gender: user.gender,
-    age: user.age ?? 0,
+    date_of_birth: user.date_of_birth ?? 0,
     location: user.location || "N/A",
     religion: user.religion || undefined,
     profession: user.occupation || "N/A",
@@ -87,7 +87,9 @@ export async function getFilteredProfiles(params: {
   religion?: string;
   education?: string;
   interests?: string;
+  name?: string;
 }): Promise<CardProfile[]> {
+
   let query = db.from("users").select("*");
 
   // 1. Gender check
@@ -95,17 +97,24 @@ export async function getFilteredProfiles(params: {
     query = query.ilike("gender", params.lookingFor.trim());
   }
 
-  // 2. Age Range check (e.g., "24 - 30")
+  // 2. Age Range check via date_of_birth
   if (params.ageRange) {
     const [minAge, maxAge] = params.ageRange
       .split("-")
       .map((val) => parseInt(val.trim(), 10));
 
+    const today = new Date();
+
     if (!isNaN(minAge)) {
-      query = query.gte("age", minAge);
+      // Latest birth date to be at least minAge years old
+      const maxDob = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+      query = query.lte("date_of_birth", maxDob.toISOString().split("T")[0]);
     }
+
     if (!isNaN(maxAge)) {
-      query = query.lte("age", maxAge);
+      // Earliest birth date to still be maxAge years old (strictly less than maxAge + 1)
+      const minDob = new Date(today.getFullYear() - (maxAge + 1), today.getMonth(), today.getDate() + 1);
+      query = query.gte("date_of_birth", minDob.toISOString().split("T")[0]);
     }
   }
 
@@ -114,7 +123,7 @@ export async function getFilteredProfiles(params: {
     query = query.ilike("location", `%${params.location.trim()}%`);
   }
 
-  // 4. Multi-value Religion check (comma-separated: "Hinduism,Christianity")
+  // 4. Multi-value Religion check
   if (params.religion) {
     const selectedReligions = params.religion
       .split(",")
@@ -131,7 +140,7 @@ export async function getFilteredProfiles(params: {
     query = query.ilike("education", `%${params.education.trim()}%`);
   }
 
-  // 6. Interests / Tags check (PostgreSQL array overlap)
+  // 6. Interests / Tags check
   if (params.interests) {
     const requestedInterests = params.interests
       .split(",")

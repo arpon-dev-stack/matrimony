@@ -27,7 +27,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="w-full bg-[#fbf9f8]/80 backdrop-blur-md sticky top-0 z-50">
+    <nav className="w-full bg-[#fbf9f8]/80 backdrop-blur-md sticky top-0 z-45">
       <div className="flex justify-between items-center h-20 px-4 mx-auto">
         <div className="flex items-center gap-3 md:gap-8">
           {/* Mobile Menu Toggle Button */}

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { getAgeInYears } from "@/app/lib/getAgeInYear";
 import Link from "next/link";
-import { LocateIcon } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { CardProfile } from "@/app/lib/profiles";
 export default function ProfileCard({ profile }: {profile: CardProfile}) {
   const [isHovered, setIsHovered] = useState(false);
@@ -37,12 +38,12 @@ export default function ProfileCard({ profile }: {profile: CardProfile}) {
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-serif text-xl text-[#000d22]">{profile.name}</h3>
           <span className="text-base text-[#775a19] font-semibold">
-            {profile.age}
+            {getAgeInYears(profile.date_of_birth)}
           </span>
         </div>
 
         <p className="text-sm text-[#43474e] mb-4 flex items-center gap-1">
-          <LocateIcon className="w-4 h-4" />
+          <MapPin className="w-4 h-4" />
           {profile.location}
         </p>
 

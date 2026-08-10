@@ -2,6 +2,8 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { SelectInput } from "./SelectInput";
+import { age_Range_Option, religions } from "@/app/lib/userFollow";
 
 export default function Sidebar() {
 //     {
@@ -16,15 +18,7 @@ export default function Sidebar() {
   const { push } = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const spiritualPaths = ["Christianity", "Hinduism", "Islam", "Sikhism"];
   const educationLevels = ["Doctorate", "Masters"];
-  const interests = [
-    "Fine Arts",
-    "Classical Music",
-    "Philanthropy",
-    "Sailing",
-    "Gastronomy",
-  ];
 
   // Local state for all filters
   const [lookingFor, setLookingFor] = useState("Woman");
@@ -184,7 +178,7 @@ export default function Sidebar() {
           </section>
 
           {/* Age Range Filter */}
-          <section>
+          {/* <section>
             <label className="text-xs text-[#43474e] block mb-2 uppercase tracking-wider font-semibold">
               Age Range
             </label>
@@ -197,7 +191,8 @@ export default function Sidebar() {
               <option value="31 - 38">31 - 38</option>
               <option value="39 - 45">39 - 45</option>
             </select>
-          </section>
+          </section> */}
+          <SelectInput options={age_Range_Option} onChange={setAgeRange} label="Age Range" value={ageRange} name="age_range"/>
 
           {/* Location Text Input Filter */}
           <section>
@@ -222,7 +217,7 @@ export default function Sidebar() {
               Spiritual Path
             </label>
             <div className="space-y-2">
-              {spiritualPaths.map((path) => {
+              {religions.map((path) => {
                 const isChecked = selectedReligion.includes(path);
                 return (
                   <label
@@ -288,7 +283,7 @@ export default function Sidebar() {
             </div>
           </section>
 
-          {/* Passions Filter */}
+          {/* Passions Filter
           <section>
             <label className="text-xs text-[#43474e] block mb-3 uppercase tracking-wider font-semibold">
               Shared Passions
@@ -317,7 +312,7 @@ export default function Sidebar() {
                 );
               })}
             </div>
-          </section>
+          </section> */}
         </div>
 
         {/* Action Buttons */}
