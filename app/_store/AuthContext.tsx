@@ -18,7 +18,7 @@ export type AuthContextType = {
   isLoading: boolean;
   signIn: (data: { id: number; token: string; profile: string | null }) => void;
   signOut: () => Promise<void>; // Updated to Promise<void>
-  getValidToken: () => Promise<string | undefined>;
+  getValidToken: () => Promise<string | null>;
   // updateUser: (updatedFields: User) => void;
 };
 
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [refreshSession]);
 
-  const getValidToken = useCallback(async (): Promise<string | undefined> => {
+  const getValidToken = useCallback(async (): Promise<string | null> => {
     if (token) {
       return token;
     }
