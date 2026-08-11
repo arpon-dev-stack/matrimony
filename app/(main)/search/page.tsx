@@ -4,6 +4,8 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import ProfileData from "@/components/ProfileData";
 import { useSearch } from "@/app/lib/useSearch";
+import { ProfileSkeletonGrid } from "@/components/SearchResultSkeleton";
+import { Suspense } from "react";
 
 export default function EternalUnionApp() {
   const { isLoading, searchResult } = useSearch();
@@ -48,7 +50,22 @@ export default function EternalUnionApp() {
               </div>
             </div>
           </div>
-          <ProfileData profiles={searchResult ?? []} isLoading={isLoading} />
+          {!isLoading && searchResult?.length === 0 && (
+            <div className="p-12 text-center text-[#43474e]">
+              <p className="text-lg font-medium">
+                No profiles match your search criteria.
+              </p>
+              <p className="text-sm mt-1">
+                Try adjusting your filters to broaden your search.
+              </p>
+            </div>
+          )}
+          {/* {
+            isLoading && <ProfileSkeletonGrid/>
+          } */}
+          <Suspense fallback={<ProfileSkeletonGrid />}>
+            <ProfileData profiles={searchResult ?? []} />
+          </Suspense>
         </div>
       </div>
     </div>

@@ -9,7 +9,7 @@ export async function updateProfileAction(
   formData: FormData,
 ): Promise<UpdateProfile> {
   // 1. Extract Authorization Token & User ID from FormData
-  const accessToken = formData.get("accessToken")?.toString();
+  const accessToken = formData.get("access_token")?.toString();
   const userPayload = formData.get("id")?.toString();
 
   if (!accessToken) {
