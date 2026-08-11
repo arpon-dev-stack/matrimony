@@ -1,6 +1,6 @@
 
 
-export function getAgeInYears(dateString: string): Promise<string> {
+export function getAgeInYears(dateString: string): string {
   const targetDate = new Date(dateString);
   const currentDate = new Date();
 

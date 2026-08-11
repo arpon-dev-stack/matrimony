@@ -1,16 +1,14 @@
 'use client';
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { Search } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
-const HomeSearch = () => {
+function HomeSearchForm() {
   const searchParams = useSearchParams();
-  console.log(searchParams)
   const pathname = usePathname();
   const { push } = useRouter();
 
-  // Initialize state from existing URL params or set defaults
   const [searchFilter, setSearchFilter] = useState({
     lookingFor: searchParams.get("lookingFor") || "Woman",
     ageRange: searchParams.get("ageRange") || "24 - 30",
@@ -18,13 +16,10 @@ const HomeSearch = () => {
     location: searchParams.get("location") || "",
   });
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
 
-    console.log(params);
-
-    // Set or remove parameters based on values
     Object.entries(searchFilter).forEach(([key, value]) => {
       if (value && value !== "Any Community") {
         params.set(key, value);
@@ -33,7 +28,6 @@ const HomeSearch = () => {
       }
     });
 
-    // Push the updated query string to the router
     push(`${pathname}search?${params.toString()}`);
   };
 
@@ -49,10 +43,7 @@ const HomeSearch = () => {
         <select
           value={searchFilter.lookingFor}
           onChange={(e) =>
-            setSearchFilter({
-              ...searchFilter,
-              lookingFor: e.target.value,
-            })
+            setSearchFilter({ ...searchFilter, lookingFor: e.target.value })
           }
           className="w-full border border-[#c4c6cf]/30 rounded-lg p-2 focus:ring-2 focus:ring-[#775a19] focus:outline-none"
         >
@@ -68,10 +59,7 @@ const HomeSearch = () => {
         <select
           value={searchFilter.ageRange}
           onChange={(e) =>
-            setSearchFilter({
-              ...searchFilter,
-              ageRange: e.target.value,
-            })
+            setSearchFilter({ ...searchFilter, ageRange: e.target.value })
           }
           className="w-full border border-[#c4c6cf]/30 rounded-lg p-2 focus:ring-2 focus:ring-[#775a19] focus:outline-none"
         >
@@ -88,10 +76,7 @@ const HomeSearch = () => {
         <select
           value={searchFilter.religion}
           onChange={(e) =>
-            setSearchFilter({
-              ...searchFilter,
-              religion: e.target.value,
-            })
+            setSearchFilter({ ...searchFilter, religion: e.target.value })
           }
           className="w-full border border-[#c4c6cf]/30 rounded-lg p-2 focus:ring-2 focus:ring-[#775a19] focus:outline-none"
         >
@@ -112,10 +97,7 @@ const HomeSearch = () => {
           placeholder="City or State"
           value={searchFilter.location}
           onChange={(e) =>
-            setSearchFilter({
-              ...searchFilter,
-              location: e.target.value,
-            })
+            setSearchFilter({ ...searchFilter, location: e.target.value })
           }
           className="w-full border border-[#c4c6cf]/30 rounded-lg p-2 focus:ring-2 focus:ring-[#775a19] focus:outline-none"
         />
@@ -130,6 +112,12 @@ const HomeSearch = () => {
       </button>
     </form>
   );
-};
+}
 
-export default HomeSearch;
+export default function HomeSearch() {
+  return (
+    <Suspense fallback={<div className="h-20 bg-white/95 rounded-lg animate-pulse" />}>
+      <HomeSearchForm />
+    </Suspense>
+  );
+}

@@ -113,3 +113,5 @@ This project is ready to be deployed on Vercel or any platform that supports Nex
 - The app uses route groups under app/ for separate public and authenticated sections.
 - Image uploads are handled through Cloudinary and UploadThing-based integrations.
 - Profile filtering is implemented server-side through the Supabase-backed profile helper.
+
+## On successful user authentication it response object { success: boolean, token: string, id: number, profile: string | null }; then it store that object global state in the frontend

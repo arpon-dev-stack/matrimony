@@ -11,6 +11,12 @@ import { UserImage } from "@/app/types/auth";
 import { useUserProfile } from "@/app/lib/useUserProfile";
 import EditProfileSkeleton from "@/components/ui/EditProfile";
 import {
+  dietaryOption,
+  fitness_routin,
+  religions,
+  values,
+} from "@/app/lib/userFollow";
+import {
   Camera,
   Plus,
   X,
@@ -21,16 +27,16 @@ import {
   Info,
   UserX,
 } from "lucide-react";
+import { SelectInput } from "@/components/SelectInput";
 
 export const EditProfile: React.FC = () => {
-  const { id, token } = useAuth();
-  const { user, isLoading } = useUserProfile(id);
+  const { user: userState, token } = useAuth();
+  const { user, isLoading } = useUserProfile(userState?.id as number);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // Form State Definitions
   const [profileImage, setProfileImage] = useState<string>("");
-  const [dateOfBirth, setDateOfBirth] = useState<string>("");
+  const [dateOfBirth, setDateOfBirth] = useState<string | null>("");
   const [fullName, setFullName] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const [occupation, setOccupation] = useState<string>("");
@@ -38,48 +44,51 @@ export const EditProfile: React.FC = () => {
   const [education, setEducation] = useState<string>("");
   const [religion, setReligion] = useState<string>("");
   const [language, setLanguage] = useState<string>("");
-  const [familyValue, setFamilyValue] = useState<string>("Modern");
-  const [fitnessRoutine, setFitnessRoutine] = useState<string>("3-4 times a week");
-  const [dietary, setDietary] = useState<string>("Non-Vegetarian");
+  const [familyValue, setFamilyValue] = useState<string>("");
+  const [fitnessRoutine, setFitnessRoutine] = useState<string>("");
+  const [dietary, setDietary] = useState<string>("");
   const [interests, setInterests] = useState<string[]>([]);
-  const [gallery, setGallery] = useState<{ id: string; src: string; is_removed: boolean }[]>([]);
+  const [gallery, setGallery] = useState<
+    { id: string; src: string; is_removed: boolean }[]
+  >([]);
 
   const [newInterest, setNewInterest] = useState("");
   const [isAddingInterest, setIsAddingInterest] = useState(false);
 
-  // Sync state once user profile is loaded asynchronously
+  // Sync state inside useEffect when user data is fetched
   useEffect(() => {
-    if (!user) return;
+    if (user) {
+      const activeImages =
+        user.images?.filter((img: UserImage) => !img.is_removed) || [];
 
-    const activeImages = user.images?.filter((img: UserImage) => !img.is_removed) || [];
+      const profileImg =
+        activeImages.find((img: UserImage) => img.is_profile)?.url ||
+        activeImages[0]?.url ||
+        "";
 
-    const profileImg =
-      activeImages.find((img: UserImage) => img.is_profile)?.url ||
-      activeImages[0]?.url ||
-      "";
+      const initialGallery = activeImages
+        .filter((img: UserImage) => !img.is_profile)
+        .map((img: UserImage, idx: number) => ({
+          id: idx.toString(),
+          src: img.url,
+          is_removed: false,
+        }));
 
-    const initialGallery = activeImages
-      .filter((img: UserImage) => !img.is_profile)
-      .map((img: UserImage, idx: number) => ({
-        id: idx.toString(),
-        src: img.url,
-        is_removed: false,
-      }));
-
-    setProfileImage(profileImg);
-    setDateOfBirth(user.date_of_birth || "");
-    setFullName(user.name || "");
-    setBio(user.bio || "");
-    setOccupation(user.occupation || "");
-    setLocation(user.location || "");
-    setEducation(user.education || "");
-    setReligion(user.religion || "");
-    setLanguage(user.language || "");
-    setFamilyValue(user.family_value || "Modern");
-    setFitnessRoutine(user.fitness_routin || "3-4 times a week");
-    setDietary(user.vegetarian ? "Vegetarian" : "Non-Vegetarian");
-    setInterests(user.interests || []);
-    setGallery(initialGallery);
+      setProfileImage(profileImg);
+      setDateOfBirth(user.date_of_birth || "");
+      setFullName(user.name || "");
+      setBio(user.bio || "");
+      setOccupation(user.occupation || "");
+      setLocation(user.location || "");
+      setEducation(user.education || "");
+      setReligion(user.religion || "");
+      setLanguage(user.language || "");
+      setFamilyValue(user.family_value || "Modern");
+      setFitnessRoutine(user.fitness_routin || "3-4 times a week");
+      setDietary(user.vegetarian ? "Vegetarian" : "Non-Vegetarian");
+      setInterests(user.interests || []);
+      setGallery(initialGallery);
+    }
   }, [user]);
 
   const handleRemoveInterest = (tag: string) => {
@@ -94,10 +103,11 @@ export const EditProfile: React.FC = () => {
     }
   };
 
-  // Soft-delete photos so their `is_removed` status persists into the formData submit payload
   const handleDeletePhoto = (id: string) => {
     setGallery((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, is_removed: true } : item))
+      prev.map((item) =>
+        item.id === id ? { ...item, is_removed: true } : item
+      )
     );
   };
 
@@ -118,9 +128,7 @@ export const EditProfile: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <EditProfileSkeleton/>
-    );
+    return <EditProfileSkeleton />;
   }
 
   return (
@@ -129,10 +137,18 @@ export const EditProfile: React.FC = () => {
         <form onSubmit={handleSubmit}>
           {/* Hidden Inputs for Form Data Serialization */}
           <input type="hidden" name="id" value={user?.id || ""} />
-          <input type="hidden" name="accessToken" value={token || ""} />
-          <input type="hidden" name="profileImage" value={profileImage} />
-          <input type="hidden" name="interests" value={JSON.stringify(interests)} />
-          <input type="hidden" name="gallery" value={JSON.stringify(gallery)} />
+          <input type="hidden" name="access_token" value={token || ""} />
+          <input type="hidden" name="profile_image" value={profileImage} />
+          <input
+            type="hidden"
+            name="interests"
+            value={JSON.stringify(interests)}
+          />
+          <input
+            type="hidden"
+            name="gallery"
+            value={JSON.stringify(gallery)}
+          />
 
           {/* Profile Photo & Identity Section */}
           <section className="flex flex-col md:flex-row gap-12 items-center md:items-start mb-12">
@@ -152,7 +168,9 @@ export const EditProfile: React.FC = () => {
               </div>
 
               <CldUploadWidget
-                uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                uploadPreset={
+                  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+                }
                 onSuccess={(result: any) => {
                   if (result?.info?.secure_url) {
                     setProfileImage(result.info.secure_url);
@@ -179,7 +197,7 @@ export const EditProfile: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  name="fullName"
+                  name="full_name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
@@ -191,7 +209,9 @@ export const EditProfile: React.FC = () => {
                   <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
                     About You (Bio)
                   </label>
-                  <span className="text-xs text-[#43474e]">{bio.length}/500</span>
+                  <span className="text-xs text-[#43474e]">
+                    {bio.length}/500
+                  </span>
                 </div>
                 <textarea
                   name="bio"
@@ -230,15 +250,18 @@ export const EditProfile: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label htmlFor="dateOfBirth" className="text-xs uppercase tracking-wider font-semibold text-[#43474e] block">
+                <label
+                  htmlFor="dateOfBirth"
+                  className="text-xs uppercase tracking-wider font-semibold text-[#43474e] block"
+                >
                   Date of Birth
                 </label>
                 <input
                   type="date"
                   onChange={(e) => setDateOfBirth(e.target.value)}
-                  value={dateOfBirth}
+                  value={dateOfBirth || ""}
                   id="dateOfBirth"
-                  name="dateOfBirth"
+                  name="date_of_birth"
                   className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none transition-colors text-base"
                 />
               </div>
@@ -252,11 +275,15 @@ export const EditProfile: React.FC = () => {
                 <h2 className="font-serif text-2xl font-semibold text-[#000d22]">
                   Moments &amp; Journeys
                 </h2>
-                <p className="text-sm text-[#43474e]">Upload additional gallery pictures</p>
+                <p className="text-sm text-[#43474e]">
+                  Upload additional gallery pictures
+                </p>
               </div>
 
               <CldUploadWidget
-                uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                uploadPreset={
+                  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+                }
                 onSuccess={(result: any) => {
                   if (result?.info?.secure_url) {
                     setGallery((prev) => [
@@ -315,7 +342,9 @@ export const EditProfile: React.FC = () => {
                 ))}
 
               <CldUploadWidget
-                uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                uploadPreset={
+                  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+                }
                 onSuccess={(result: any) => {
                   if (result?.info?.secure_url) {
                     setGallery((prev) => [
@@ -414,37 +443,21 @@ export const EditProfile: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
-                    Dietary Preference
-                  </label>
-                  <select
-                    name="dietary"
-                    value={dietary}
-                    onChange={(e) => setDietary(e.target.value)}
-                    className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none appearance-none"
-                  >
-                    <option value="Vegetarian">Vegetarian</option>
-                    <option value="Non-Vegetarian">Non-Vegetarian</option>
-                  </select>
-                </div>
+                <SelectInput
+                  options={dietaryOption}
+                  value={dietary}
+                  name="dietary"
+                  label="Dietary Preference"
+                  onChange={setDietary}
+                />
 
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
-                    Fitness Routine
-                  </label>
-                  <select
-                    name="fitnessRoutine"
-                    value={fitnessRoutine}
-                    onChange={(e) => setFitnessRoutine(e.target.value)}
-                    className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none appearance-none"
-                  >
-                    <option value="Daily / High Intensity">Daily / High Intensity</option>
-                    <option value="3-4 times a week">3-4 times a week</option>
-                    <option value="Occasional / Weekend">Occasional / Weekend</option>
-                    <option value="Yoga & Meditation focus">Yoga &amp; Meditation focus</option>
-                  </select>
-                </div>
+                <SelectInput
+                  value={fitnessRoutine}
+                  name="fitness_routine"
+                  label="Fitness Routine"
+                  options={fitness_routin}
+                  onChange={setFitnessRoutine}
+                />
               </div>
             </div>
           </section>
@@ -459,18 +472,13 @@ export const EditProfile: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
-                  Religion / Spiritual Path
-                </label>
-                <input
-                  type="text"
-                  name="religion"
-                  value={religion}
-                  onChange={(e) => setReligion(e.target.value)}
-                  className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none"
-                />
-              </div>
+              <SelectInput
+                onChange={setReligion}
+                value={religion}
+                name="religion"
+                options={religions}
+                label="Religion"
+              />
 
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
@@ -498,29 +506,21 @@ export const EditProfile: React.FC = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider font-semibold text-[#43474e]">
-                  Family Values
-                </label>
-                <select
-                  name="familyValue"
-                  value={familyValue}
-                  onChange={(e) => setFamilyValue(e.target.value)}
-                  className="w-full bg-white border border-[#c4c6cf] rounded-lg px-4 py-3 focus:border-[#775a19] focus:outline-none appearance-none"
-                >
-                  <option value="Modern">Modern</option>
-                  <option value="Traditional">Traditional</option>
-                  <option value="Liberal">Liberal</option>
-                  <option value="Conservative Modern">Conservative Modern</option>
-                </select>
-              </div>
+              <SelectInput
+                label="Family Value"
+                onChange={setFamilyValue}
+                name="family_value"
+                value={familyValue}
+                options={values}
+              />
             </div>
 
             <div className="mt-8 pt-8 border-t border-[#c4c6cf]/30">
               <div className="flex items-center gap-3 p-4 bg-[#002349]/10 rounded-lg border border-[#002349]/20">
                 <Info className="w-5 h-5 text-[#002349] shrink-0" />
                 <p className="text-sm text-[#2c476f]">
-                  Values and background information help us find your most compatible matches.
+                  Values and background information help us find your most
+                  compatible matches.
                 </p>
               </div>
             </div>

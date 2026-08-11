@@ -29,7 +29,7 @@ export default function SignupForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
 
   useEffect(() => {
-      if (state?.id) {
+      if (state?.success) {
         signIn({id: state.id, token: state.token, profile: state.profile}); // Stores full profile (id, email, joiningfor, location, etc.)
         router.push('/user'); // Redirects client-side after state update
       }

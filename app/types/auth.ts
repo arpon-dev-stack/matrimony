@@ -6,6 +6,10 @@ export interface UserImage {
   is_removed: boolean;
 }
 
+export type AuthObject = {id: number, token: string, profile: string | null}
+
+export type AuthUserGlobalState = {id: number, profile: string | null}
+
 export interface User {
   date_of_birth?: string;
   interests?: string[];
@@ -44,4 +48,4 @@ export interface AuthFormState {
   token?: string;
 }
 
-export interface UpdateProfile {error?: string, success?: boolean}
+export interface UpdateProfile {error?: string, success: boolean}

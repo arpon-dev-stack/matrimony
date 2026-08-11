@@ -1,6 +1,3 @@
-// lib/profiles.ts
-
-import { User } from "../types/auth";
 import { db } from "./bd";
 
 export interface ImageItem {
@@ -10,7 +7,7 @@ export interface ImageItem {
 }
 
 export interface UserRow {
-  date_of_birth: string;
+  date_of_birth: string | null;
   id: number;
   name: string;
   joining_for: string;
@@ -37,15 +34,13 @@ export interface UserRow {
 export interface CardProfile {
   id: number;
   name: string;
-  gender?: string;
-  age: number;
-  location: string;
-  religion?: string;
-  profession: string;
-  education: string;
-  badge: string | null;
-  tags: string[];
-  imageUrl: string;
+  gender: string;
+  date_of_birth: string | null;
+  location: string | null;
+  religion: string | null;
+  profession: string | null;
+  education: string | null;
+  imageUrl: string | null;
 }
 
 /**
@@ -59,53 +54,54 @@ function mapUserToProfile(user: UserRow): CardProfile {
     activeImages[0]?.url ||
     "https://via.placeholder.com/600x750?text=No+Profile+Picture";
 
-  // Determine badge status
-  let badge: string | null = null;
-  if (user.is_verified) {
-    badge = "Verified";
-  }
-
   return {
     id: user.id,
     name: user.name || "Anonymous",
     gender: user.gender,
-    age: user.age ?? 0,
+    date_of_birth: user.date_of_birth,
     location: user.location || "N/A",
-    religion: user.religion || undefined,
+    religion: user.religion || "N/A",
     profession: user.occupation || "N/A",
     education: user.education || "N/A",
-    badge,
-    tags: user.interests || [],
     imageUrl: primaryImage,
   };
 }
 
 export async function getFilteredProfiles(params: {
-  lookingFor?: string;
-  ageRange?: string;
+  looking_for?: string;
+  age_range?: string;
   location?: string;
   religion?: string;
   education?: string;
   interests?: string;
+  name?: string;
 }): Promise<CardProfile[]> {
+
   let query = db.from("users").select("*");
 
   // 1. Gender check
-  if (params.lookingFor) {
-    query = query.ilike("gender", params.lookingFor.trim());
+  if (params.looking_for) {
+    query = query.ilike("gender", params.looking_for.trim());
   }
 
-  // 2. Age Range check (e.g., "24 - 30")
-  if (params.ageRange) {
-    const [minAge, maxAge] = params.ageRange
+  // 2. Age Range check via date_of_birth
+  if (params.age_range) {
+    const [minAge, maxAge] = params.age_range
       .split("-")
       .map((val) => parseInt(val.trim(), 10));
 
+    const today = new Date();
+
     if (!isNaN(minAge)) {
-      query = query.gte("age", minAge);
+      // Latest birth date to be at least minAge years old
+      const maxDob = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+      query = query.lte("date_of_birth", maxDob.toISOString().split("T")[0]);
     }
+
     if (!isNaN(maxAge)) {
-      query = query.lte("age", maxAge);
+      // Earliest birth date to still be maxAge years old (strictly less than maxAge + 1)
+      const minDob = new Date(today.getFullYear() - (maxAge + 1), today.getMonth(), today.getDate() + 1);
+      query = query.gte("date_of_birth", minDob.toISOString().split("T")[0]);
     }
   }
 
@@ -114,7 +110,7 @@ export async function getFilteredProfiles(params: {
     query = query.ilike("location", `%${params.location.trim()}%`);
   }
 
-  // 4. Multi-value Religion check (comma-separated: "Hinduism,Christianity")
+  // 4. Multi-value Religion check
   if (params.religion) {
     const selectedReligions = params.religion
       .split(",")
@@ -131,7 +127,7 @@ export async function getFilteredProfiles(params: {
     query = query.ilike("education", `%${params.education.trim()}%`);
   }
 
-  // 6. Interests / Tags check (PostgreSQL array overlap)
+  // 6. Interests / Tags check
   if (params.interests) {
     const requestedInterests = params.interests
       .split(",")
@@ -154,7 +150,6 @@ export async function getFilteredProfiles(params: {
 }
 
 export async function getProfile(id: number): Promise<UserRow | null> {
-  'use client';
 
   const { data: user, error } = await db
     .from("users")

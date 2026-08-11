@@ -104,16 +104,20 @@ export async function signUpAction(
     const id: number = insertUser.id;
     const images: UserImage[] = insertUser.images;
 
-    function getProfileImageUrl(images: UserImage[]): string | undefined {
+    if (images.length > 0) {
+      const profile: string | null = getProfileImageUrl(images);
+      if (profile !== null) {
+        return { success: true, token, id, profile };
+      }
+    }
+    function getProfileImageUrl(images: UserImage[]): string | null {
       const profileImage = images.find(
         (img) => img.is_profile && !img.is_removed,
       );
 
-      return profileImage ? profileImage.url : undefined;
+      return profileImage ? profileImage.url : null;
     }
-
-    const profile: string | undefined = getProfileImageUrl(images);
-    return { success: true, token, id, profile };
+    return { success: true, token, id, profile: null}
   } catch (error) {
     console.error("SignUp Error:", error);
     return { error: "An unexpected error occurred. Please try again." };

@@ -1,42 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { getProfile, UserRow } from "@/app/lib/profiles";
 
 interface UseUserProfileReturn {
   user: UserRow | null;
   isLoading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
 }
 
-export function useUserProfile(id: number | undefined): UseUserProfileReturn {
+export function useUserProfile(id: number): UseUserProfileReturn {
   const [user, setUser] = useState<UserRow | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isFetching, setIsFetching] = useState<boolean>(false);
-
-  // Keep track of which ID was successfully loaded to derive loading status on re-render
-  const [fetchedId, setFetchedId] = useState<number | undefined>(undefined);
-
-  // Manual refetch function
-  const refetch = useCallback(async () => {
-    if (id === null || id === undefined) return;
-
-    setIsFetching(true);
-    setError(null);
-
-    try {
-      const profile = await getProfile(id);
-      if (!profile) {
-        setError("Try again");
-        setUser(null);
-      } else {
-        setUser(profile);
-      }
-    } catch (err) {
-      setError("Try again: " + (err instanceof Error ? err.message : String(err)));
-    } finally {
-      setIsFetching(false);
-    }
-  }, [id]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (id === null || id === undefined) return;
@@ -46,25 +20,33 @@ export function useUserProfile(id: number | undefined): UseUserProfileReturn {
     async function loadProfile() {
       // 1. Move state updates inside the async function microtask
       try {
+        setIsLoading(true);
         const profile = await getProfile(id as number);
 
-        if (isCanceled) return;
+        if (isCanceled) {
+          setIsLoading(false);
+          return;
+        }
 
         if (!profile) {
           setError("Try again");
           setUser(null);
+          setIsLoading(false);
         } else {
           setUser(profile);
           setError(null);
+          setIsLoading(false);
         }
       } catch (err) {
         if (!isCanceled) {
-          setError("Try again: " + (err instanceof Error ? err.message : String(err)));
+          setError(
+            "Try again: " + (err instanceof Error ? err.message : String(err)),
+          );
+          setIsLoading(false);
         }
       } finally {
         if (!isCanceled) {
-          setFetchedId(id);
-          setIsFetching(false);
+          setIsLoading(false);
         }
       }
     }
@@ -77,12 +59,9 @@ export function useUserProfile(id: number | undefined): UseUserProfileReturn {
   }, [id]);
 
   // Derived state: loading if an ID exists but hasn't finished fetching yet
-  const isLoading = id !== null && id !== undefined && (fetchedId !== id || isFetching);
-
   return {
     user,
     isLoading,
     error,
-    refetch,
   };
 }

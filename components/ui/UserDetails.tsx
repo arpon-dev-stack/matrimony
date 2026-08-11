@@ -7,8 +7,6 @@ import {
   CheckCircle2,
   Calendar,
   MapPin,
-  Edit,
-  LogOut,
   Briefcase,
   GraduationCap,
   Mail,
