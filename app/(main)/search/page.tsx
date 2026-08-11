@@ -3,12 +3,10 @@
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import ProfileData from "@/components/ProfileData";
-import { useSearch } from "@/app/lib/useSearch";
 import { ProfileSkeletonGrid } from "@/components/SearchResultSkeleton";
 import { Suspense } from "react";
 
 export default function EternalUnionApp() {
-  const { isLoading, searchResult } = useSearch();
 
   return (
     <div className="flex w-full bg-[#fbf9f8] text-[#1b1c1c] antialiased overflow-hidden font-sans relative">
@@ -23,14 +21,6 @@ export default function EternalUnionApp() {
               <h2 className="font-serif text-2xl md:text-3xl text-[#000d22]">
                 Discover Chosen Profiles
               </h2>
-              {isLoading ? (
-                <div className="h-5 w-64 bg-gray-200 animate-pulse rounded mt-2" />
-              ) : (
-                <p className="text-[#43474e] mt-1 text-sm md:text-base">
-                  {searchResult?.length ?? 0} curated matches found based on
-                  your preferences
-                </p>
-              )}
             </div>
 
             <div className="flex items-center gap-3">
@@ -50,21 +40,8 @@ export default function EternalUnionApp() {
               </div>
             </div>
           </div>
-          {!isLoading && searchResult?.length === 0 && (
-            <div className="p-12 text-center text-[#43474e]">
-              <p className="text-lg font-medium">
-                No profiles match your search criteria.
-              </p>
-              <p className="text-sm mt-1">
-                Try adjusting your filters to broaden your search.
-              </p>
-            </div>
-          )}
-          {/* {
-            isLoading && <ProfileSkeletonGrid/>
-          } */}
-          <Suspense fallback={<ProfileSkeletonGrid />}>
-            <ProfileData profiles={searchResult ?? []} />
+          <Suspense fallback={<ProfileSkeletonGrid/>}>
+          <ProfileData/>
           </Suspense>
         </div>
       </div>

@@ -1,18 +1,11 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { SelectInput } from "./SelectInput";
 import { age_Range_Option, religions } from "@/app/lib/userFollow";
 
-export default function Sidebar() {
-  //     {
-  //   isOpen,
-  //   onClose,
-  // }: {
-  //   isOpen: boolean;
-  //   onClose: () => void;
-  // }
+function SidebarContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { push } = useRouter();
@@ -36,13 +29,13 @@ export default function Sidebar() {
     setAgeRange(searchParams.get("age_range") || "24 - 30");
     setLocation(searchParams.get("location") || "");
     setSelectedReligion(
-      searchParams.get("religion")?.split(",").filter(Boolean) || [],
+      searchParams.get("religion")?.split(",").filter(Boolean) || []
     );
     setSelectedEducation(
-      searchParams.get("education")?.split(",").filter(Boolean) || [],
+      searchParams.get("education")?.split(",").filter(Boolean) || []
     );
     setSelectedInterests(
-      searchParams.get("interests")?.split(",").filter(Boolean) || [],
+      searchParams.get("interests")?.split(",").filter(Boolean) || []
     );
   }, [searchParams]);
 
@@ -50,7 +43,7 @@ export default function Sidebar() {
   const toggleSelection = (
     item: string,
     list: string[],
-    setList: (val: string[]) => void,
+    setList: (val: string[]) => void
   ) => {
     if (list.includes(item)) {
       setList(list.filter((i) => i !== item));
@@ -61,7 +54,7 @@ export default function Sidebar() {
 
   // Submit and update searchParams in URL
   const handleSearch = () => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
 
     if (lookingFor) params.set("looking_for", lookingFor);
     else params.delete("looking_for");
@@ -202,7 +195,7 @@ export default function Sidebar() {
             />
           </section>
 
-          {/* religion Filter */}
+          {/* Religion Filter */}
           <section>
             <label className="text-xs text-[#43474e] block mb-2 uppercase tracking-wider font-semibold">
               Spiritual Path
@@ -222,13 +215,17 @@ export default function Sidebar() {
                         toggleSelection(
                           path,
                           selectedReligion,
-                          setSelectedReligion,
+                          setSelectedReligion
                         )
                       }
                       className="rounded border-[#c4c6cf] text-[#775a19] focus:ring-[#775a19]"
                     />
                     <span
-                      className={`text-sm ${isChecked ? "text-[#775a19] font-semibold" : "text-[#1b1c1c]"} group-hover:text-[#775a19] transition-colors`}
+                      className={`text-sm ${
+                        isChecked
+                          ? "text-[#775a19] font-semibold"
+                          : "text-[#1b1c1c]"
+                      } group-hover:text-[#775a19] transition-colors`}
                     >
                       {path}
                     </span>
@@ -258,13 +255,17 @@ export default function Sidebar() {
                         toggleSelection(
                           edu,
                           selectedEducation,
-                          setSelectedEducation,
+                          setSelectedEducation
                         )
                       }
                       className="rounded border-[#c4c6cf] text-[#775a19] focus:ring-[#775a19]"
                     />
                     <span
-                      className={`text-sm ${isChecked ? "text-[#775a19] font-semibold" : "text-[#1b1c1c]"} group-hover:text-[#775a19] transition-colors`}
+                      className={`text-sm ${
+                        isChecked
+                          ? "text-[#775a19] font-semibold"
+                          : "text-[#1b1c1c]"
+                      } group-hover:text-[#775a19] transition-colors`}
                     >
                       {edu}
                     </span>
@@ -293,5 +294,13 @@ export default function Sidebar() {
         </div>
       </aside>
     </>
+  );
+}
+
+export default function Sidebar() {
+  return (
+    <Suspense fallback={<aside className="w-80 h-full bg-[#fbf9f8] border-r border-[#c4c6cf]/30 shrink-0" />}>
+      <SidebarContent />
+    </Suspense>
   );
 }
