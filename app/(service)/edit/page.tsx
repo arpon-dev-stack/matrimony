@@ -11,6 +11,7 @@ import { UserImage } from "@/app/types/auth";
 import { useUserProfile } from "@/app/lib/useUserProfile";
 import EditProfileSkeleton from "@/components/ui/EditProfile";
 import {
+  dietary_option,
   fitness_routin,
   religions,
   values,
@@ -443,7 +444,7 @@ export const EditProfile: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <SelectInput
-                  options={dietaryOption}
+                  options={dietary_option}
                   value={dietary}
                   name="dietary"
                   label="Dietary Preference"
