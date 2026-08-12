@@ -84,7 +84,7 @@ export const EditProfile: React.FC = () => {
       setLanguage(user.language || "");
       setFamilyValue(user.family_value || "Modern");
       setFitnessRoutine(user.fitness_routin || "3-4 times a week");
-      setDietary(user.vegetarian ? "Vegetarian" : "Non-Vegetarian");
+      setDietary(user.dietary ? "Vegetarian" : "Non-Vegetarian");
       setInterests(user.interests || []);
       setGallery(initialGallery);
     }
