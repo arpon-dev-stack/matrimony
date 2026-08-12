@@ -17,7 +17,7 @@ const Note = () => {
 
       {/* Marquee Container */}
       <div className="relative flex-1 overflow-hidden h-full flex items-center">
-        <div className="animate-marquee whitespace-nowrap text-nowrap text-white text-sm md:text-base">
+        <div className="animate-marquee whitespace-nowrap text-nowrap text-white text-xs md:text-base">
           Fellas Its The Beta Version, with a Lot of Unknow Bug Your Support and
           Opinion Can Help Me To Build A Great Software.
         </div>
