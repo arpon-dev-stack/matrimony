@@ -85,7 +85,7 @@ const Navbar = () => {
           ) : (
             <>
               <Link href="/signin" className="flex items-center gap-2">
-                Log In
+                Sign In
                 <CircleUser />
               </Link>
               <Link

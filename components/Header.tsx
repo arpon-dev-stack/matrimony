@@ -1,59 +1,50 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
-function SearchInput() {
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { push } = useRouter();
+export default function Header() {
+  const router = useRouter();
 
-  const [term, setTerm] = useState("");
+  // Helper to convert strings into lowercase snake_case
+  const toSnakeCase = (str: string) =>
+    str
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_");
 
-  const handleSearch = () => {
-    const params = new URLSearchParams(searchParams);
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    if (term.trim()) {
-      params.set("name", term.trim());
-      setTerm("");
+    const formData = new FormData(e.currentTarget);
+    const term = formData.get("name")?.toString().trim();
+
+    if (term) {
+      const formattedTerm = toSnakeCase(term);
+      router.push(`/search?name=${encodeURIComponent(formattedTerm)}&page=1`);
+      e.currentTarget.reset();
     } else {
-      params.delete("name");
+      router.push("/search");
     }
-
-    push(`${pathname}?${params.toString()}`);
   };
 
   return (
-    <div className="relative w-full h-11 max-w-2xl">
-      <input
-        type="text"
-        value={term}
-        onChange={(e) => setTerm(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") handleSearch();
-        }}
-        placeholder="Search by name"
-        className="w-full bg-[#f5f3f3] border border-[#c4c6cf]/30 rounded-full h-11 pl-4 pr-14 text-sm focus:ring-2 focus:ring-[#775a19]/20 focus:border-[#775a19] outline-none transition-all"
-      />
-      <button
-        onClick={handleSearch}
-        type="button"
-        aria-label="Search"
-        className="absolute rounded-full right-[2px] flex justify-center items-center top-[2px] h-10 w-10 bg-gradient-to-r from-[#C5A059] to-[#B08C45] hover:opacity-90 transition-opacity"
-      >
-        <Search className="h-5 w-5 text-white" />
-      </button>
-    </div>
-  );
-}
-
-export default function Header() {
-  return (
     <header className="h-24 px-16 flex items-center justify-between border-b border-[#c4c6cf]/10 backdrop-blur-md bg-[#fbf9f8]/80 z-10">
-      <Suspense fallback={<div className="w-full h-11 max-w-2xl bg-[#f5f3f3] rounded-full animate-pulse" />}>
-        <SearchInput />
-      </Suspense>
+      <form onSubmit={handleSearch} className="relative w-full h-11 max-w-2xl">
+        <input
+          type="text"
+          name="name"
+          placeholder="Search by name"
+          className="w-full bg-[#f5f3f3] border border-[#c4c6cf]/30 rounded-full h-11 pl-4 pr-14 text-sm focus:ring-2 focus:ring-[#775a19]/20 focus:border-[#775a19] outline-none transition-all"
+        />
+        <button
+          type="submit"
+          aria-label="Search"
+          className="absolute rounded-full right-[2px] flex justify-center items-center top-[2px] h-10 w-10 bg-gradient-to-r from-[#C5A059] to-[#B08C45] hover:opacity-90 transition-opacity cursor-pointer"
+        >
+          <Search className="h-5 w-5 text-white" />
+        </button>
+      </form>
     </header>
   );
 }

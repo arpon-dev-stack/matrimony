@@ -2,12 +2,12 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getFilteredProfiles } from "./profiles";
-import { CardProfile } from "./profiles";
+import { getFilteredProfiles, CardProfile } from "./profiles";
 
-interface Search {
+export interface Search {
   looking_for: string | undefined;
-  age_range: string | undefined;
+  min_age: string | undefined;
+  max_age: string | undefined;
   location: string | undefined;
   religion: string | undefined;
   education: string | undefined;
@@ -18,48 +18,55 @@ interface Search {
 export const useSearch = () => {
   const params = useSearchParams();
   const [searchResult, setSearchResult] = useState<CardProfile[] | undefined>(
-    undefined,
+    undefined
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  const looking_for: string | undefined = params.get("looking_for") ?? undefined;
-  const age_range: string | undefined = params.get("age_range") ?? undefined;
-  const location: string | undefined = params.get("location") ?? undefined;
-  const religion: string | undefined = params.get("religion") ?? undefined;
-  const education: string | undefined = params.get("education") ?? undefined;
-  const interests: string | undefined = params.get("interests") ?? undefined;
-  const name: string | undefined = params.get("name") ?? undefined;
-
+  const looking_for = params.get("looking_for") ?? undefined;
+  const min_age = params.get("min_age") ?? undefined;
+  const max_age = params.get("max_age") ?? undefined;
+  const location = params.get("location") ?? undefined;
+  const religion = params.get("religion") ?? undefined;
+  const education = params.get("education") ?? undefined;
+  const interests = params.get("interests") ?? undefined;
+  const name = params.get("name") ?? undefined;
 
   useEffect(() => {
-    let is_cancled = false;
-    const search = async (search: Search) => {
+    let isCanceled = false;
+
+    const executeSearch = async (searchParams: Search) => {
       try {
         setIsLoading(true);
-        const res = await getFilteredProfiles(search);
+        setError(undefined);
 
-        if (!res) {
-          setError("No User found");
-          setIsLoading(false);
-        }
-        if (!is_cancled) {
+        const res = await getFilteredProfiles(searchParams);
+
+        if (isCanceled) return;
+
+        if (!res || res.length === 0) {
+          setError("No users found");
+          setSearchResult([]);
+        } else {
           setSearchResult(res);
         }
-        setIsLoading(false);
       } catch (err) {
-        setError(
-          "Try again: " + (err instanceof Error ? err.message : String(err)),
-        );
-        setIsLoading(false);
+        if (!isCanceled) {
+          setError(
+            "Try again: " + (err instanceof Error ? err.message : String(err))
+          );
+        }
       } finally {
-        setIsLoading(false);
+        if (!isCanceled) {
+          setIsLoading(false);
+        }
       }
     };
 
-    search({
+    executeSearch({
       looking_for,
-      age_range,
+      min_age,
+      max_age,
       location,
       religion,
       education,
@@ -68,9 +75,18 @@ export const useSearch = () => {
     });
 
     return () => {
-      is_cancled = true;
+      isCanceled = true;
     };
-  }, [looking_for, age_range, location, religion, education, interests, name]);
+  }, [
+    looking_for,
+    min_age,
+    max_age,
+    location,
+    religion,
+    education,
+    interests,
+    name,
+  ]);
 
   return { isLoading, error, searchResult };
 };

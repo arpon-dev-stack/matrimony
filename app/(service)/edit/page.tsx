@@ -11,7 +11,7 @@ import { UserImage } from "@/app/types/auth";
 import { useUserProfile } from "@/app/lib/useUserProfile";
 import EditProfileSkeleton from "@/components/ui/EditProfile";
 import {
-  dietaryOption,
+  dietary_option,
   fitness_routin,
   religions,
   values,
@@ -85,7 +85,7 @@ export const EditProfile: React.FC = () => {
       setLanguage(user.language || "");
       setFamilyValue(user.family_value || "Modern");
       setFitnessRoutine(user.fitness_routin || "3-4 times a week");
-      setDietary(user.vegetarian ? "Vegetarian" : "Non-Vegetarian");
+      setDietary(user.dietary ? "Vegetarian" : "Non-Vegetarian");
       setInterests(user.interests || []);
       setGallery(initialGallery);
     }
@@ -444,7 +444,7 @@ export const EditProfile: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <SelectInput
-                  options={dietaryOption}
+                  options={dietary_option}
                   value={dietary}
                   name="dietary"
                   label="Dietary Preference"
