@@ -1,26 +1,20 @@
-"use client";
-
-import { useState } from "react";
-import { getAgeInYears } from "@/app/lib/getAgeInYear";
 import Link from "next/link";
+import Image from "next/image";
 import { MapPin } from "lucide-react";
+import { getAgeInYears } from "@/app/lib/getAgeInYear";
 import { CardProfile } from "@/app/lib/profiles";
-export default function ProfileCard({ profile }: { profile: CardProfile }) {
-  const [isHovered, setIsHovered] = useState(false);
 
+export default function ProfileCard({ profile }: { profile: CardProfile }) {
   return (
-    <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="bg-white border border-[#c4c6cf]/30 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-[#775a19] group"
-    >
+    <div className="group bg-white border border-[#c4c6cf]/30 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-[#775a19]">
+      {/* Image Container with CSS scale on group hover */}
       <div className="relative h-64 overflow-hidden">
-        <div
-          className="w-full h-full bg-cover bg-center transition-transform duration-700"
-          style={{
-            backgroundImage: `url(${profile.imageUrl})`,
-            transform: isHovered ? "scale(1.05)" : "scale(1)",
-          }}
+        <Image
+          src={profile.imageUrl}
+          alt={profile.name}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
       </div>
 
@@ -60,14 +54,11 @@ export default function ProfileCard({ profile }: { profile: CardProfile }) {
 
         <Link
           href={`/profile/${profile.id}`}
-          className="w-full block text-center py-3 rounded text-white text-sm font-semibold tracking-wide transition-all duration-300 hover:brightness-110 hover:-translate-y-0.5"
-          style={{
-            background: "linear-gradient(135deg, #C5A059 0%, #B08C45 100%)",
-          }}
+          className="w-full block text-center py-3 rounded text-white text-sm font-semibold tracking-wide transition-all duration-300 hover:brightness-110 hover:-translate-y-0.5 bg-gradient-to-br from-[#C5A059] to-[#B08C45]"
         >
-          View Profiel
+          View Profile
         </Link>
       </div>
-  </div>
+    </div>
   );
 }
