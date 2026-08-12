@@ -96,7 +96,7 @@ export default function SearchForm() {
       <button
         type="button"
         onClick={onOpen}
-        className="lg:hidden fixed bottom-6 right-6 z-30 bg-[#775a19] text-white p-3.5 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium hover:bg-[#5f4713] transition-all cursor-pointer"
+        className="lg:hidden fixed bottom-28 right-6 z-30 bg-[#775a19] text-white p-3.5 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium hover:bg-[#5f4713] transition-all cursor-pointer"
         aria-label="Open Filters"
       >
         <Filter className="w-5 h-5" />

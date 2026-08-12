@@ -2,23 +2,12 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getFilteredProfiles, CardProfile } from "./profiles";
-
-export interface Search {
-  looking_for: string | undefined;
-  min_age: string | undefined;
-  max_age: string | undefined;
-  location: string | undefined;
-  religion: string | undefined;
-  education: string | undefined;
-  interests: string | undefined;
-  name: string | undefined;
-}
+import { getFilteredProfiles, GetUsers, Search } from "./profiles";
 
 export const useSearch = () => {
   const params = useSearchParams();
-  const [searchResult, setSearchResult] = useState<CardProfile[] | undefined>(
-    undefined
+  const [searchResult, setSearchResult] = useState<GetUsers>(
+    {users: [], count: null}
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -31,6 +20,7 @@ export const useSearch = () => {
   const education = params.get("education") ?? undefined;
   const interests = params.get("interests") ?? undefined;
   const name = params.get("name") ?? undefined;
+  const page = params.get("page") ?? undefined;
 
   useEffect(() => {
     let isCanceled = false;
@@ -44,9 +34,9 @@ export const useSearch = () => {
 
         if (isCanceled) return;
 
-        if (!res || res.length === 0) {
+        if (!res || res.users.length === 0) {
           setError("No users found");
-          setSearchResult([]);
+          setSearchResult({users: [], count: null});
         } else {
           setSearchResult(res);
         }
@@ -72,6 +62,7 @@ export const useSearch = () => {
       education,
       interests,
       name,
+      page
     });
 
     return () => {
@@ -86,6 +77,7 @@ export const useSearch = () => {
     education,
     interests,
     name,
+    page
   ]);
 
   return { isLoading, error, searchResult };

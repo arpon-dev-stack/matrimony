@@ -33,6 +33,7 @@ export interface Search {
   education: string | undefined;
   interests: string | undefined;
   name: string | undefined;
+  page: string | undefined;
 }
 
 export interface CardProfile {
@@ -47,22 +48,15 @@ export interface CardProfile {
   imageUrl: string;
 }
 
-export interface Search {
-  looking_for: string | undefined;
-  min_age: string | undefined;
-  max_age: string | undefined;
-  location: string | undefined;
-  religion: string | undefined;
-  education: string | undefined;
-  interests: string | undefined;
-  name: string | undefined;
-}
-
 interface ImageObj {
   url: string;
   is_profile: boolean;
   is_removed: boolean;
 }
+export type GetUsersNot = { users: []; count: null };
+export type GetUsers =
+  | { users: CardProfile[]; count: number | null }
+  | GetUsersNot;
 
 // 1. Helper to safely parse PostgreSQL composite strings or JS arrays for images
 function getProfileImageUrl(rawImages: any): string {
@@ -120,12 +114,18 @@ function mapUserToProfile(user: any): CardProfile {
 
 const cleanParamValue = (val: string) => val.trim().replace(/[_]/g, " ");
 
-export async function getFilteredProfiles(
-  params: Search,
-): Promise<CardProfile[]> {
-  let query = db.from("users").select("*");
+export async function getFilteredProfiles(params: Search): Promise<GetUsers> {
+  const page = Math.max(1, Number(params.page) || 1);
+  const limit = 20;
 
-  // 1. Gender mapping (Map "man" -> "male", "woman" -> "female")
+  // Calculate PostgreSQL offset boundaries
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  // Pass { count: "exact" } to request the total count matching filters
+  let query = db.from("users").select("*", { count: "exact" });
+
+  // 1. Gender mapping
   if (params.looking_for) {
     let genderVal = cleanParamValue(params.looking_for).toLowerCase();
     if (genderVal === "man" || genderVal === "men") genderVal = "male";
@@ -201,17 +201,20 @@ export async function getFilteredProfiles(
     query = query.ilike("name", `%${cleanName}%`);
   }
 
-  const { data, error } = await query.limit(20);
+  const { data, error, count } = await query.range(from, to);
 
   if (error) {
     console.error("Error fetching filtered profiles:", error.message);
-    return [];
+    return { users: [], count: null };
   }
 
-  return (data || []).map(mapUserToProfile);
+  const users = (data || []).map(mapUserToProfile);
+
+  return { users, count };
 }
 
-export async function getProfile(id: number): Promise<UserRow | null> {``
+export async function getProfile(id: number): Promise<UserRow | null> {
+  ``;
   const { data: user, error } = await db
     .from("users")
     .select("*")

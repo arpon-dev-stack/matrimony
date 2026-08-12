@@ -7,7 +7,6 @@ import { ProfileSkeletonGrid } from "@/components/SearchResultSkeleton";
 import { Suspense } from "react";
 
 export default function EternalUnionApp() {
-
   return (
     <div className="flex w-full bg-[#fbf9f8] text-[#1b1c1c] antialiased overflow-hidden font-sans relative">
       <Sidebar />
@@ -36,8 +35,8 @@ export default function EternalUnionApp() {
               </div>
             </div>
           </div>
-          <Suspense fallback={<ProfileSkeletonGrid/>}>
-          <ProfileData/>
+          <Suspense fallback={<ProfileSkeletonGrid />}>
+            <ProfileData/>
           </Suspense>
         </div>
       </div>
