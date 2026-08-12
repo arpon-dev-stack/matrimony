@@ -11,7 +11,6 @@ import { UserImage } from "@/app/types/auth";
 import { useUserProfile } from "@/app/lib/useUserProfile";
 import EditProfileSkeleton from "@/components/ui/EditProfile";
 import {
-  dietaryOption,
   fitness_routin,
   religions,
   values,
