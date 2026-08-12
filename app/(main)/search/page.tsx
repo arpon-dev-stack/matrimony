@@ -24,11 +24,7 @@ export default function EternalUnionApp() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="lg:hidden flex items-center gap-2 bg-[#000d22] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#002349] transition-all">
-                <span>Filters</span>
-              </button>
-
-              <div className="hidden sm:flex flex-col lg:flex-row items-center gap-2 lg:gap-4">
+              <div className="hidden sm:flex flex-row items-center gap-2 lg:gap-4">
                 <span className="text-sm text-nowrap text-[#43474e]">
                   Sort by:
                 </span>

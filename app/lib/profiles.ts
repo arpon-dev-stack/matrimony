@@ -1,34 +1,38 @@
 import { db } from "./bd";
 
-export interface ImageItem {
-  url: string;
-  is_profile: boolean;
-  is_removed: boolean;
-}
-
 export interface UserRow {
-  date_of_birth: string | null;
   id: number;
   name: string;
   joining_for: string;
   email: string;
   gender: string;
-  age: number | null;
-  agree_with: boolean;
+  date_of_birth: string | null;
+  agree_with: boolean | null;
   location: string | null;
-  completed: boolean;
+  completed: boolean | null;
   religion: string | null;
   occupation: string | null;
   education: string | null;
-  is_verified: boolean;
-  created_at: string;
-  vegetarian: string | null;
+  is_verified: boolean | null;
+  created_at: string | null;
+  dietary: string | null;
   interests: string[] | null;
   fitness_routin: string | null;
   language: string | null;
   family_value: string | null;
   bio: string | null;
-  images: ImageItem[] | null;
+  images: ImageObj[] | null;
+}
+
+export interface Search {
+  looking_for: string | undefined;
+  min_age: string | undefined;
+  max_age: string | undefined;
+  location: string | undefined;
+  religion: string | undefined;
+  education: string | undefined;
+  interests: string | undefined;
+  name: string | undefined;
 }
 
 export interface CardProfile {
@@ -36,24 +40,71 @@ export interface CardProfile {
   name: string;
   gender: string;
   date_of_birth: string | null;
-  location: string | null;
-  religion: string | null;
-  profession: string | null;
-  education: string | null;
-  imageUrl: string | null;
+  location: string;
+  religion: string;
+  profession: string;
+  education: string;
+  imageUrl: string;
 }
 
-/**
- * Maps a raw database row from the `users` table to the UI `Profile` format.
- */
-function mapUserToProfile(user: UserRow): CardProfile {
-  // Extract non-removed profile picture or fallback to first active image
-  const activeImages = user.images?.filter((img) => !img.is_removed) || [];
-  const primaryImage =
-    activeImages.find((img) => img.is_profile)?.url ||
-    activeImages[0]?.url ||
-    "https://via.placeholder.com/600x750?text=No+Profile+Picture";
+export interface Search {
+  looking_for: string | undefined;
+  min_age: string | undefined;
+  max_age: string | undefined;
+  location: string | undefined;
+  religion: string | undefined;
+  education: string | undefined;
+  interests: string | undefined;
+  name: string | undefined;
+}
 
+interface ImageObj {
+  url: string;
+  is_profile: boolean;
+  is_removed: boolean;
+}
+
+// 1. Helper to safely parse PostgreSQL composite strings or JS arrays for images
+function getProfileImageUrl(rawImages: any): string {
+  const fallback =
+    "https://via.placeholder.com/600x750?text=No+Profile+Picture";
+  if (!rawImages) return fallback;
+
+  let parsedList: ImageObj[] = [];
+
+  // Case A: Driver already parsed it as JSON objects
+  if (Array.isArray(rawImages)) {
+    parsedList = rawImages;
+  }
+  // Case B: Raw PostgreSQL composite string like '{"(https://...jpg,t,f)", "(https://...jpg,f,f)"}'
+  else if (typeof rawImages === "string") {
+    const tupleMatches = rawImages.match(/\(([^)]+)\)/g);
+    if (tupleMatches) {
+      parsedList = tupleMatches.map((tuple) => {
+        const clean = tuple.replace(/[\(\)]/g, "");
+        const parts = clean.split(",");
+        const url = parts[0]?.replace(/^"/, "").replace(/"$/, "") || "";
+        const is_profile = parts[1] === "t" || parts[1] === "true";
+        const is_removed = parts[2] === "t" || parts[2] === "true";
+
+        return { url, is_profile, is_removed };
+      });
+    }
+  }
+
+  // Find image with is_profile = true AND is_removed = false
+  const activeProfilePic = parsedList.find(
+    (img) => img.is_profile && !img.is_removed,
+  );
+  if (activeProfilePic?.url) return activeProfilePic.url;
+
+  // Fallback to first non-removed image if no primary is set
+  const firstActivePic = parsedList.find((img) => !img.is_removed);
+  return firstActivePic?.url || fallback;
+}
+
+// 2. Map DB row to CardProfile
+function mapUserToProfile(user: any): CardProfile {
   return {
     id: user.id,
     name: user.name || "Anonymous",
@@ -63,94 +114,104 @@ function mapUserToProfile(user: UserRow): CardProfile {
     religion: user.religion || "N/A",
     profession: user.occupation || "N/A",
     education: user.education || "N/A",
-    imageUrl: primaryImage,
+    imageUrl: getProfileImageUrl(user.images),
   };
 }
 
-export async function getFilteredProfiles(params: {
-  looking_for?: string;
-  age_range?: string;
-  location?: string;
-  religion?: string;
-  education?: string;
-  interests?: string;
-  name?: string;
-}): Promise<CardProfile[]> {
+const cleanParamValue = (val: string) => val.trim().replace(/[_]/g, " ");
 
+export async function getFilteredProfiles(
+  params: Search,
+): Promise<CardProfile[]> {
   let query = db.from("users").select("*");
 
-  // 1. Gender check
+  // 1. Gender mapping (Map "man" -> "male", "woman" -> "female")
   if (params.looking_for) {
-    query = query.ilike("gender", params.looking_for.trim());
+    let genderVal = cleanParamValue(params.looking_for).toLowerCase();
+    if (genderVal === "man" || genderVal === "men") genderVal = "male";
+    if (genderVal === "woman" || genderVal === "women") genderVal = "female";
+
+    query = query.ilike("gender", genderVal);
   }
 
-  // 2. Age Range check via date_of_birth
-  if (params.age_range) {
-    const [minAge, maxAge] = params.age_range
-      .split("-")
-      .map((val) => parseInt(val.trim(), 10));
+  // 2. Age Range calculation using date_of_birth column
+  const today = new Date();
 
-    const today = new Date();
+  if (params.min_age && !isNaN(Number(params.min_age))) {
+    const minAge = Number(params.min_age);
+    const maxDob = new Date(
+      today.getFullYear() - minAge,
+      today.getMonth(),
+      today.getDate(),
+    );
+    query = query.lte("date_of_birth", maxDob.toISOString().split("T")[0]);
+  }
 
-    if (!isNaN(minAge)) {
-      // Latest birth date to be at least minAge years old
-      const maxDob = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
-      query = query.lte("date_of_birth", maxDob.toISOString().split("T")[0]);
-    }
-
-    if (!isNaN(maxAge)) {
-      // Earliest birth date to still be maxAge years old (strictly less than maxAge + 1)
-      const minDob = new Date(today.getFullYear() - (maxAge + 1), today.getMonth(), today.getDate() + 1);
-      query = query.gte("date_of_birth", minDob.toISOString().split("T")[0]);
-    }
+  if (params.max_age && !isNaN(Number(params.max_age))) {
+    const maxAge = Number(params.max_age);
+    const minDob = new Date(
+      today.getFullYear() - (maxAge + 1),
+      today.getMonth(),
+      today.getDate() + 1,
+    );
+    query = query.gte("date_of_birth", minDob.toISOString().split("T")[0]);
   }
 
   // 3. Location check
   if (params.location) {
-    query = query.ilike("location", `%${params.location.trim()}%`);
+    const cleanLocation = cleanParamValue(params.location);
+    query = query.ilike("location", `%${cleanLocation}%`);
   }
 
-  // 4. Multi-value Religion check
+  // 4. Religion check
   if (params.religion) {
     const selectedReligions = params.religion
       .split(",")
-      .map((r) => r.trim())
+      .map((r) => cleanParamValue(r))
       .filter(Boolean);
 
-    if (selectedReligions.length > 0) {
+    if (selectedReligions.length === 1) {
+      query = query.ilike("religion", `%${selectedReligions[0]}%`);
+    } else if (selectedReligions.length > 1) {
       query = query.in("religion", selectedReligions);
     }
   }
 
   // 5. Education check
   if (params.education) {
-    query = query.ilike("education", `%${params.education.trim()}%`);
+    const cleanEducation = cleanParamValue(params.education);
+    query = query.ilike("education", `%${cleanEducation}%`);
   }
 
-  // 6. Interests / Tags check
+  // 6. Interests check (PostgreSQL array _text check using contains)
   if (params.interests) {
-    const requestedInterests = params.interests
+    const cleanInterests = params.interests
       .split(",")
-      .map((i) => i.trim())
+      .map((i) => cleanParamValue(i))
       .filter(Boolean);
 
-    if (requestedInterests.length > 0) {
-      query = query.overlaps("interests", requestedInterests);
+    if (cleanInterests.length > 0) {
+      query = query.contains("interests", cleanInterests);
     }
   }
 
-  const { data, error } = await query;
+  // 7. Name check
+  if (params.name) {
+    const cleanName = cleanParamValue(params.name);
+    query = query.ilike("name", `%${cleanName}%`);
+  }
+
+  const { data, error } = await query.limit(20);
 
   if (error) {
     console.error("Error fetching filtered profiles:", error.message);
     return [];
   }
 
-  return (data as UserRow[]).map(mapUserToProfile);
+  return (data || []).map(mapUserToProfile);
 }
 
-export async function getProfile(id: number): Promise<UserRow | null> {
-
+export async function getProfile(id: number): Promise<UserRow | null> {``
   const { data: user, error } = await db
     .from("users")
     .select("*")
@@ -159,10 +220,10 @@ export async function getProfile(id: number): Promise<UserRow | null> {
 
   if (error) {
     console.error(`Error fetching profile with id ${id}:`, error.message);
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
 
-  return (user);
+  return user;
 }
 
 export async function getProfiles(): Promise<{ users: UserRow[] }> {

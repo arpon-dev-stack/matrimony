@@ -9,7 +9,7 @@ export const religions: Religion[] = [
 
 export type Dietary = "Not-Vegetarian" | "Vegetarian";
 
-export const dietaryOption: Dietary[] = ["Not-Vegetarian", "Vegetarian"];
+export const dietary_option: Dietary[] = ["Not-Vegetarian", "Vegetarian"];
 
 export type Values = "Modern" | "Traditional" | "Liberal" | "Conservative Modern";
 
@@ -27,4 +27,8 @@ export const fitness_routin: Fitness_Routine[] = [
 
 export type Age_Range = "18-22" | "23-27" | "28-32" | "33-37" | "38-42" | "43-47";
 
-export const age_Range_Option: Age_Range[] = ["18-22", "23-27", "28-32", "33-37", "38-42", "43-47"];
+export const age_range_option: Age_Range[] = ["18-22", "23-27", "28-32", "33-37", "38-42", "43-47"];
+
+export type Gender = "Man" | "Woman";
+
+export const gender_option: Gender[] = ["Man", "Woman"];
