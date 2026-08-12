@@ -261,7 +261,7 @@ const UserDetails = ({isUser = true, user}: {isUser: boolean, user: UserRow | nu
                   Dietary Choice
                 </p>
                 <span className="inline-block bg-gray-50 text-[#000d22] px-3 py-1 rounded-md text-sm font-medium border border-gray-200">
-                  {user?.vegetarian ? "Vegetarian" : "Non-Vegetarian"}
+                  {user?.dietary ? "Vegetarian" : "Non-Vegetarian"}
                 </span>
               </div>
 
