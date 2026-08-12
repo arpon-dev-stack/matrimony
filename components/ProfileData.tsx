@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition, useCallback } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import ProfileCard from "./ProfileCard";
 import { getFilteredProfiles, Search, CardProfile } from "@/app/lib/profiles";
@@ -12,51 +12,82 @@ const ProfileData = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
 
   const [profiles, setProfiles] = useState<CardProfile[]>([]);
   const [count, setCount] = useState<number | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
 
-  const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+
+  const searchParamsString = searchParams.toString();
 
   useEffect(() => {
+    let isMounted = true;
+
+    // Read query values directly inside the effect to avoid stale primitive closures
+    const pageParam = Math.max(1, Number(searchParams.get("page")) || 1);
+
+    const paramsObj: Search = {
+      looking_for: searchParams.get("looking_for") ?? undefined,
+      min_age: searchParams.get("min_age") ?? undefined,
+      max_age: searchParams.get("max_age") ?? undefined,
+      location: searchParams.get("location") ?? undefined,
+      religion: searchParams.get("religion") ?? undefined,
+      education: searchParams.get("education") ?? undefined,
+      interests: searchParams.get("interests") ?? undefined,
+      name: searchParams.get("name") ?? undefined,
+      page: String(pageParam),
+    };
+
     const fetchProfiles = async () => {
-      setLoading(true);
-
-      const paramsObj: Search = {
-        looking_for: searchParams.get("looking_for") ?? undefined,
-        min_age: searchParams.get("min_age") ?? undefined,
-        max_age: searchParams.get("max_age") ?? undefined,
-        location: searchParams.get("location") ?? undefined,
-        religion: searchParams.get("religion") ?? undefined,
-        education: searchParams.get("education") ?? undefined,
-        interests: searchParams.get("interests") ?? undefined,
-        name: searchParams.get("name") ?? undefined,
-        page: String(currentPage),
-      };
-
+      // Functional state check avoids declaring `profiles.length` as a dependency
+      setProfiles((prev) => {
+        if (prev.length === 0) {
+          setIsInitialLoading(true);
+        } else {
+          setIsFetching(true);
+        }
+        return prev;
+      });
       try {
         const { users = [], count: totalCount } = await getFilteredProfiles(paramsObj);
-        console.log(totalCount);
-        setProfiles(users);
-        setCount(totalCount);
+        if (isMounted) {
+          setProfiles(users);
+          setCount(totalCount);
+        }
       } catch (error) {
         console.error("Error fetching profiles:", error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setIsInitialLoading(false);
+          setIsFetching(false);
+        }
       }
     };
 
     fetchProfiles();
-  }, [searchParams, currentPage]);
 
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(newPage));
-    router.push(`${pathname}?${params.toString()}`);
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParamsString, searchParams]);
 
-  if (loading) {
+  const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
+
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      const params = new URLSearchParams(searchParamsString);
+      params.set("page", String(newPage));
+
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`, { scroll: true });
+      });
+    },
+    [searchParamsString, router, pathname]
+  );
+
+  if (isInitialLoading) {
     return <ProfileSkeletonGrid />;
   }
 
@@ -76,6 +107,7 @@ const ProfileData = () => {
   const totalMatches = count ?? profiles.length;
   const totalPages = Math.ceil(totalMatches / LIMIT);
   const showPagination = totalMatches > LIMIT;
+  const isNavigating = isPending || isFetching;
 
   return (
     <>
@@ -83,7 +115,11 @@ const ProfileData = () => {
         {totalMatches} curated matches found based on your preferences
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 transition-opacity duration-200 ${
+          isNavigating ? "opacity-50 pointer-events-none" : "opacity-100"
+        }`}
+      >
         {profiles.map((profile) => (
           <ProfileCard key={profile.id} profile={profile} />
         ))}
@@ -93,7 +129,7 @@ const ProfileData = () => {
         <div className="flex items-center justify-between mt-12 pt-6 border-t border-[#c4c6cf]/30">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
+            disabled={currentPage === 1 || isNavigating}
             className="px-5 py-2.5 rounded-lg border border-[#c4c6cf] text-sm font-medium text-[#000d22] disabled:opacity-40 disabled:cursor-not-allowed hover:border-[#775a19] transition-colors"
           >
             Previous
@@ -105,7 +141,7 @@ const ProfileData = () => {
 
           <button
             onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage >= totalPages}
+            disabled={currentPage >= totalPages || isNavigating}
             className="px-5 py-2.5 rounded-lg border border-[#c4c6cf] text-sm font-medium text-[#000d22] disabled:opacity-40 disabled:cursor-not-allowed hover:border-[#775a19] transition-colors"
           >
             Next
