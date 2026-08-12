@@ -17,15 +17,15 @@ const ProfileData = () => {
   const [profiles, setProfiles] = useState<CardProfile[]>([]);
   const [count, setCount] = useState<number | null>(null);
 
-  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
-  const [isFetching, setIsFetching] = useState<boolean>(false);
+  // Single loading state flag
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const searchParamsString = searchParams.toString();
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoading(true); // Always start fetch cycle in loading state
 
-    // Read query values directly inside the effect to avoid stale primitive closures
     const pageParam = Math.max(1, Number(searchParams.get("page")) || 1);
 
     const paramsObj: Search = {
@@ -41,15 +41,6 @@ const ProfileData = () => {
     };
 
     const fetchProfiles = async () => {
-      // Functional state check avoids declaring `profiles.length` as a dependency
-      setProfiles((prev) => {
-        if (prev.length === 0) {
-          setIsInitialLoading(true);
-        } else {
-          setIsFetching(true);
-        }
-        return prev;
-      });
       try {
         const { users = [], count: totalCount } = await getFilteredProfiles(paramsObj);
         if (isMounted) {
@@ -60,8 +51,7 @@ const ProfileData = () => {
         console.error("Error fetching profiles:", error);
       } finally {
         if (isMounted) {
-          setIsInitialLoading(false);
-          setIsFetching(false);
+          setIsLoading(false);
         }
       }
     };
@@ -71,7 +61,7 @@ const ProfileData = () => {
     return () => {
       isMounted = false;
     };
-  }, [searchParamsString, searchParams]);
+  }, [searchParamsString]);
 
   const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
 
@@ -87,11 +77,13 @@ const ProfileData = () => {
     [searchParamsString, router, pathname]
   );
 
-  if (isInitialLoading) {
+  // 1. Show skeleton only on initial fetch (when no profiles exist yet)
+  if (isLoading && profiles.length === 0) {
     return <ProfileSkeletonGrid />;
   }
 
-  if (profiles.length === 0) {
+  // 2. Show empty state if fetch completed with no results
+  if (!isLoading && profiles.length === 0) {
     return (
       <div className="col-span-full p-12 text-center text-[#43474e]">
         <p className="text-lg font-medium">
@@ -107,7 +99,7 @@ const ProfileData = () => {
   const totalMatches = count ?? profiles.length;
   const totalPages = Math.ceil(totalMatches / LIMIT);
   const showPagination = totalMatches > LIMIT;
-  const isNavigating = isPending || isFetching;
+  const isNavigating = isPending || isLoading;
 
   return (
     <>
